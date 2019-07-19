@@ -17,16 +17,22 @@ namespace BirdieLib
 
         public void Start()
         {
-            Active = true;
+            if (!Active)
+            {
+                Active = true;
 
-            ControlThread = new Thread(() => ControlLoop());
+                ControlThread = new Thread(() => ControlLoop());
+            }
         }
 
         public void Stop()
         {
-            Active = false;
+            if (Active)
+            {
+                Active = false;
 
-            KillThread();
+                KillThread();
+            }
         }
 
         public void KillThread(int timeout = 60)
@@ -38,7 +44,7 @@ namespace BirdieLib
             catch (Exception) { }
 
             DateTime start = DateTime.Now;
-            while (ControlThread.IsAlive && start.AddSeconds(timeout) > DateTime.Now) { }
+            while (ControlThread != null && ControlThread.IsAlive && start.AddSeconds(timeout) > DateTime.Now) { }
         }
 
         private void ControlLoop()
