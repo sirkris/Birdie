@@ -1,16 +1,24 @@
-﻿using Tweetinvi.Models;
+﻿using System;
+using Tweetinvi;
+using Tweetinvi.Models;
 
 namespace BirdieLib
 {
+    [Serializable]
     public class TwitterUser
     {
-        public string Username;
-        public IUser IUser;
+        public string Username { get; set; }
+        public IUser IUser { get; set; }
+        public bool Enabled { get; set; }
 
-        public TwitterUser(string username, IUser iUser)
+        public TwitterUser(string username, bool enabled = true)
         {
             Username = username;
-            IUser = iUser;
+            if (enabled)
+            {
+                IUser = User.GetUserFromScreenName(username);
+            }
+            Enabled = enabled;
         }
     }
 }

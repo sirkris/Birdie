@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace BirdieLib.Structures
+namespace BirdieLib
 {
     [Serializable]
     public class Stats
     {
         [JsonProperty("retweets")]
-        public Dictionary<string, int> Retweets { get; set; }
+        public int Retweets { get; set; }
 
         [JsonProperty("firstRetweet")]
         public DateTime? FirstRetweet { get; set; }
@@ -16,9 +16,9 @@ namespace BirdieLib.Structures
         [JsonProperty("lastRetweet")]
         public DateTime? LastRetweet { get; set; }
 
-        public Stats(Dictionary<string, int> retweets = null, DateTime? firstRetweet = null, DateTime? lastRetweet = null)
+        public Stats(int retweets = 0, DateTime? firstRetweet = null, DateTime? lastRetweet = null)
         {
-            Retweets = retweets ?? new Dictionary<string, int>();
+            Retweets = retweets;
             FirstRetweet = firstRetweet;
             LastRetweet = lastRetweet;
         }
