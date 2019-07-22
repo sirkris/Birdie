@@ -19,9 +19,17 @@ namespace BirdieLib
         [JsonProperty("AccessTokenSecret")]
         public string AccessTokenSecret { get; set; }
 
+        private readonly string ConfigPath;
+
         public TwitterConfig(string configPath = null)
         {
-            TwitterConfig twitterConfig = Load(configPath);
+            if (string.IsNullOrEmpty(configPath))
+            {
+                configPath = Environment.CurrentDirectory;
+            }
+            ConfigPath = configPath;
+
+            TwitterConfig twitterConfig = Load();
 
             ConsumerKey = twitterConfig.ConsumerKey;
             ConsumerSecret = twitterConfig.ConsumerSecret;
@@ -29,14 +37,14 @@ namespace BirdieLib
             AccessTokenSecret = twitterConfig.AccessTokenSecret;
         }
 
-        private TwitterConfig Load(string configPath = null)
+        private TwitterConfig Load()
         {
-            if (string.IsNullOrEmpty(configPath))
-            {
-                configPath = Environment.CurrentDirectory;
-            }
+            return JsonConvert.DeserializeObject<TwitterConfig>(File.ReadAllText(Path.Combine(ConfigPath, "TwitterConfig.json")));
+        }
 
-            return JsonConvert.DeserializeObject<TwitterConfig>(File.ReadAllText(Path.Combine(configPath, "TwitterConfig.json")));
+        public void Save()
+        {
+            File.WriteAllText(Path.Combine(ConfigPath, "TwitterConfig.json"), JsonConvert.SerializeObject(this));
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using BirdieLib.EventArgs;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -19,6 +21,8 @@ namespace BirdieLib
 
         // Structure:  Original Tweet URL => Username
         public Dictionary<string, string> RetweetHistory;
+
+        public TwitterConfig TwitterConfig;
 
         private readonly Dictionary<string, string> TwitterUserFullnames;
 
@@ -69,8 +73,6 @@ namespace BirdieLib
                 }
             };
 
-            // TODO - Load stats and retweet history.  --Kris
-
             TwitterUserFullnames = new Dictionary<string, string>
             {
                 { "BernieSanders", "Bernie Sanders" },
@@ -78,6 +80,29 @@ namespace BirdieLib
                 { "TulsiGabbard", "Tulsi Gabbard" },
                 { "DrJillStein", "Jill Stein" }
             };
+
+            // Load config, stats, and retweet history.  --Kris
+            string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
+            if (File.Exists(targetsPath))
+            {
+                try
+                {
+                    Targets = JsonConvert.DeserializeObject<Dictionary<string, Target>>(File.ReadAllText(targetsPath));
+                }
+                catch (Exception) { }
+            }
+
+            string retweetHistoryPath = Path.Combine(Environment.CurrentDirectory, "retweetHistory.json");
+            if (File.Exists(retweetHistoryPath))
+            {
+                try
+                {
+                    RetweetHistory = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(retweetHistoryPath));
+                }
+                catch (Exception) { }
+            }
+
+            TwitterConfig = new TwitterConfig();
         }
 
         public void Start()
@@ -129,15 +154,19 @@ namespace BirdieLib
                                 Tweet.PublishRetweet(tweet);
                                 RetweetHistory.Add(tweet.Url, pair.Key);
 
+                                SaveRetweetHistory();
+
                                 if (Targets[TwitterUserFullnames[pair.Key]].Stats.Retweets.Equals(0))
                                 {
                                     Targets[TwitterUserFullnames[pair.Key]].Stats.FirstRetweet = DateTime.Now;
                                 }
 
-                                string oldRank = GetRank(pair.Key);
-
                                 Targets[TwitterUserFullnames[pair.Key]].Stats.Retweets++;
                                 Targets[TwitterUserFullnames[pair.Key]].Stats.LastRetweet = DateTime.Now;
+
+                                SaveTargets();
+
+                                string oldRank = GetRank(pair.Key);
 
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
@@ -160,6 +189,16 @@ namespace BirdieLib
 
                 Wait(60000);
             }
+        }
+
+        private void SaveTargets()
+        {
+            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "targets.json"), JsonConvert.SerializeObject(Targets));
+        }
+
+        private void SaveRetweetHistory()
+        {
+            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "retweetHistory.json"), JsonConvert.SerializeObject(RetweetHistory));
         }
 
         public string GetRank(string targetFullname)
