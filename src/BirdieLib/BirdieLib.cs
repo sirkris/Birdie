@@ -15,6 +15,9 @@ namespace BirdieLib
         private Thread ControlThread;
         private Dictionary<string, IEnumerable<ITweet>> Tweets;
 
+        private TwitterCredentials TwitterCredentials;
+        private IAuthenticationContext AuthenticationContext;
+
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
 
         public Dictionary<string, Target> Targets;
@@ -31,55 +34,6 @@ namespace BirdieLib
         public BirdieLib()
         {
             Active = false;
-
-            // Only Bernie's tweets are monitored by default.  --Kris
-            Targets = new Dictionary<string, Target>
-            {
-                {
-                    "Bernie Sanders", new Target("Bernie Sanders", new List<TwitterUser>
-                                      {
-                                          new TwitterUser("BernieSanders"),
-                                          new TwitterUser("SenSanders")
-                                      },
-                                      new Dictionary<int, string>  // The score value is the number of retweets.  --Kris
-                                      {
-                                          { 0, "Poser" },
-                                          { 1, "Rookie Berner" },
-                                          { 10, "Volunteer" },
-                                          { 25, "Aspiring Revolutionary" },
-                                          { 50, "Birdie Bro" },
-                                          { 75, "Fictional Chair-Thrower" },
-                                          { 100, "Berner" },
-                                          { 250, "Social Media Soldier" },
-                                          { 500, "Berner-Elite" },
-                                          { 1000, "Revolutionary Legend" }
-                                      })
-                },
-                {
-                    "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<TwitterUser> { new TwitterUser("TulsiGabbard", false) },
-                                     new Dictionary<int, string>
-                                     {
-                                          { 0, "Poser" },
-                                          { 1, "Tulsi Gabbard Supporter" }
-                                     })
-                },
-                {
-                    "Jill Stein", new Target("Jill Stein", new List<TwitterUser> { new TwitterUser("DrJillStein", false) },
-                                     new Dictionary<int, string>
-                                     {
-                                          { 0, "Poser" },
-                                          { 1, "Jill Stein Supporter" }
-                                     })
-                }
-            };
-
-            TwitterUserFullnames = new Dictionary<string, string>
-            {
-                { "BernieSanders", "Bernie Sanders" },
-                { "SenSanders", "Bernie Sanders" },
-                { "TulsiGabbard", "Tulsi Gabbard" },
-                { "DrJillStein", "Jill Stein" }
-            };
 
             // Load config, stats, and retweet history.  --Kris
             string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
@@ -102,7 +56,76 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            TwitterConfig = new TwitterConfig();
+            TwitterConfig = new TwitterConfig(null);
+            LoadTwitterCredentials();
+
+            TweetinviConfig.CurrentThreadSettings.TweetMode = TweetMode.Extended;
+            TweetinviConfig.CurrentThreadSettings.InitialiseFrom(TweetinviConfig.ApplicationSettings);
+
+            // Only Bernie's tweets are monitored by default.  --Kris
+            if (Targets == null)
+            {
+                Targets = new Dictionary<string, Target>
+                {
+                    {
+                        "Bernie Sanders", new Target("Bernie Sanders", new List<TwitterUser>
+                                          {
+                                              new TwitterUser("BernieSanders"),
+                                              new TwitterUser("SenSanders")
+                                          },
+                                          new Dictionary<int, string>  // The score value is the number of retweets.  --Kris
+                                          {
+                                              { 0, "Poser" },
+                                              { 1, "Rookie Berner" },
+                                              { 10, "Volunteer" },
+                                              { 25, "Aspiring Revolutionary" },
+                                              { 50, "Birdie Bro" },
+                                              { 75, "Fictional Chair-Thrower" },
+                                              { 100, "Berner" },
+                                              { 250, "Social Media Soldier" },
+                                              { 500, "Berner-Elite" },
+                                              { 1000, "Revolutionary Legend" }
+                                          })
+                    },
+                    {
+                        "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<TwitterUser> { new TwitterUser("TulsiGabbard", false) },
+                                         new Dictionary<int, string>
+                                         {
+                                              { 0, "Poser" },
+                                              { 1, "Tulsi Gabbard Supporter" }
+                                         })
+                    },
+                    {
+                        "Jill Stein", new Target("Jill Stein", new List<TwitterUser> { new TwitterUser("DrJillStein", false) },
+                                         new Dictionary<int, string>
+                                         {
+                                              { 0, "Poser" },
+                                              { 1, "Jill Stein Supporter" }
+                                         })
+                    }
+                };
+            }
+
+            if (RetweetHistory == null)
+            {
+                RetweetHistory = new Dictionary<string, string>();
+            }
+
+            TwitterUserFullnames = new Dictionary<string, string>
+            {
+                { "BernieSanders", "Bernie Sanders" },
+                { "SenSanders", "Bernie Sanders" },
+                { "TulsiGabbard", "Tulsi Gabbard" },
+                { "DrJillStein", "Jill Stein" }
+            };
+        }
+
+        private void LoadTwitterCredentials()
+        {
+            TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret, TwitterConfig.AccessToken, TwitterConfig.AccessTokenSecret);
+            AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
+
+            Auth.SetCredentials(TwitterCredentials);
         }
 
         public void Start()
@@ -112,6 +135,10 @@ namespace BirdieLib
                 Active = true;
 
                 ControlThread = new Thread(() => ControlLoop());
+
+                ControlThread.Start();
+
+                while (!ControlThread.IsAlive) { }
             }
         }
 
@@ -167,7 +194,7 @@ namespace BirdieLib
 
                                 SaveTargets();
 
-                                string oldRank = GetRank(pair.Key);
+                                string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
 
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
@@ -175,7 +202,7 @@ namespace BirdieLib
                                     SourceUser = pair.Key,
                                     Score = Targets[TwitterUserFullnames[pair.Key]].Stats.Retweets,
                                     OldRank = oldRank,
-                                    NewRank = GetRank(pair.Key),
+                                    NewRank = GetRank(TwitterUserFullnames[pair.Key]),
                                     TweetedAt = tweet.CreatedAt,
                                     RetweetedAt = DateTime.Now,
                                     Tweet = tweet.Text
@@ -191,6 +218,11 @@ namespace BirdieLib
                                 // Wait a minute between each tweet.  --Kris
                                 Wait(60000);
                             }
+                        }
+
+                        if (i >= 10)
+                        {
+                            break;
                         }
                     }
 

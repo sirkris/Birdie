@@ -21,7 +21,7 @@ namespace BirdieLib
 
         private readonly string ConfigPath;
 
-        public TwitterConfig(string configPath = null)
+        public TwitterConfig(string configPath)
         {
             if (string.IsNullOrEmpty(configPath))
             {
@@ -36,6 +36,8 @@ namespace BirdieLib
             AccessToken = twitterConfig.AccessToken;
             AccessTokenSecret = twitterConfig.AccessTokenSecret;
         }
+
+        public TwitterConfig() { }
 
         private TwitterConfig Load()
         {
