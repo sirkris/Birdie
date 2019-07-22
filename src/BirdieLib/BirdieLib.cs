@@ -139,11 +139,12 @@ namespace BirdieLib
 
         private void ControlLoop()
         {
-            // Every hour, check followed Twitter accounts for new tweets and retweet.  --Kris
+            // Every hour, check followed Twitter accounts for new tweets and retweet.  Limit 10 retweets per hour to avoid spam.  --Kris
             while (Active)
             {
                 if (!LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
                 {
+                    int i = 0;
                     LoadTimelines();
                     foreach (KeyValuePair<string, IEnumerable<ITweet>> pair in Tweets)
                     {
@@ -180,6 +181,15 @@ namespace BirdieLib
                                     Tweet = tweet.Text
                                 };
                                 RetweetsUpdate?.Invoke(this, args);
+
+                                i++;
+                                if (i >= 10)
+                                {
+                                    break;
+                                }
+
+                                // Wait a minute between each tweet.  --Kris
+                                Wait(60000);
                             }
                         }
                     }

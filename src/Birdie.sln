@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdieLib", "BirdieLib\BirdieLib.csproj", "{C035DE5B-3D6E-4728-BC4B-25336ADB836F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BirdieLib", "BirdieLib\BirdieLib.csproj", "{C035DE5B-3D6E-4728-BC4B-25336ADB836F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdieConsoleApp", "BirdieConsoleApp\BirdieConsoleApp.csproj", "{3A0D2764-94CF-4805-BD1B-2C5EA4F0E7A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C035DE5B-3D6E-4728-BC4B-25336ADB836F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C035DE5B-3D6E-4728-BC4B-25336ADB836F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C035DE5B-3D6E-4728-BC4B-25336ADB836F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A0D2764-94CF-4805-BD1B-2C5EA4F0E7A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A0D2764-94CF-4805-BD1B-2C5EA4F0E7A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A0D2764-94CF-4805-BD1B-2C5EA4F0E7A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A0D2764-94CF-4805-BD1B-2C5EA4F0E7A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
