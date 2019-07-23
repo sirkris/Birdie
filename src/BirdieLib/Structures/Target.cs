@@ -11,7 +11,7 @@ namespace BirdieLib
         public string Name { get; set; }
 
         [JsonProperty("twitterUsers")]
-        public IEnumerable<TwitterUser> TwitterUsers { get; set; }
+        public IEnumerable<string> TwitterUsers { get; set; }
 
         [JsonProperty("ranks")]
         public Dictionary<int, string> Ranks { get; set; }
@@ -19,11 +19,15 @@ namespace BirdieLib
         [JsonProperty("stats")]
         public Stats Stats { get; set; }
 
-        public Target(string name, IEnumerable<TwitterUser> twitterUsers, Dictionary<int, string> ranks, Stats stats = null)
+        [JsonProperty("enabled")]
+        public bool Enabled { get; set; }
+
+        public Target(string name, IEnumerable<string> twitterUsers, Dictionary<int, string> ranks, bool enabled = true, Stats stats = null)
         {
             Name = name;
             TwitterUsers = twitterUsers;
             Ranks = ranks;
+            Enabled = enabled;
             Stats = stats ?? new Stats();
         }
     }

@@ -28,12 +28,15 @@ namespace BirdieLib
         public TwitterConfig TwitterConfig;
 
         private readonly Dictionary<string, string> TwitterUserFullnames;
+        private Dictionary<string, TwitterUser> TwitterUsers;
 
         public bool Active { get; private set; }
 
         public BirdieLib()
         {
             Active = false;
+
+            TwitterUsers = new Dictionary<string, TwitterUser>();
 
             // Load config, stats, and retweet history.  --Kris
             string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
@@ -68,10 +71,10 @@ namespace BirdieLib
                 Targets = new Dictionary<string, Target>
                 {
                     {
-                        "Bernie Sanders", new Target("Bernie Sanders", new List<TwitterUser>
+                        "Bernie Sanders", new Target("Bernie Sanders", new List<string>
                                           {
-                                              new TwitterUser("BernieSanders"),
-                                              new TwitterUser("SenSanders")
+                                              "BernieSanders",
+                                              "SenSanders"
                                           },
                                           new Dictionary<int, string>  // The score value is the number of retweets.  --Kris
                                           {
@@ -88,20 +91,20 @@ namespace BirdieLib
                                           })
                     },
                     {
-                        "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<TwitterUser> { new TwitterUser("TulsiGabbard", false) },
+                        "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<string> { "TulsiGabbard" },
                                          new Dictionary<int, string>
                                          {
                                               { 0, "Poser" },
                                               { 1, "Tulsi Gabbard Supporter" }
-                                         })
+                                         }, false)
                     },
                     {
-                        "Jill Stein", new Target("Jill Stein", new List<TwitterUser> { new TwitterUser("DrJillStein", false) },
+                        "Jill Stein", new Target("Jill Stein", new List<string> { "DrJillStein" },
                                          new Dictionary<int, string>
                                          {
                                               { 0, "Poser" },
                                               { 1, "Jill Stein Supporter" }
-                                         })
+                                         }, false)
                     }
                 };
             }
@@ -177,9 +180,12 @@ namespace BirdieLib
                     {
                         foreach (ITweet tweet in pair.Value)
                         {
-                            if (!RetweetHistory.ContainsKey(tweet.Url))
+                            if (!RetweetHistory.ContainsKey(tweet.Url) 
+                                && tweet.CreatedAt.AddDays(1) > DateTime.Now)
                             {
-                                Tweet.PublishRetweet(tweet);
+                                string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
+
+                                //Tweet.PublishRetweet(tweet);
                                 RetweetHistory.Add(tweet.Url, pair.Key);
 
                                 SaveRetweetHistory();
@@ -193,8 +199,6 @@ namespace BirdieLib
                                 Targets[TwitterUserFullnames[pair.Key]].Stats.LastRetweet = DateTime.Now;
 
                                 SaveTargets();
-
-                                string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
 
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
@@ -269,16 +273,25 @@ namespace BirdieLib
             Tweets = new Dictionary<string, IEnumerable<ITweet>>();
             foreach (KeyValuePair<string, Target> pair in Targets)
             {
-                foreach (TwitterUser user in pair.Value.TwitterUsers)
+                if (pair.Value.Enabled)
                 {
-                    if (user.Enabled)
+                    foreach (string userName in pair.Value.TwitterUsers)
                     {
-                        if (user.IUser == null)
+                        if (!TwitterUsers.ContainsKey(userName))
                         {
-                            user.IUser = User.GetUserFromScreenName(user.Username);
+                            TwitterUsers.Add(userName, new TwitterUser(userName));
                         }
-                        
-                        Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                        TwitterUser user = TwitterUsers[userName];
+
+                        if (user.Enabled)
+                        {
+                            if (user.IUser == null)
+                            {
+                                user.IUser = User.GetUserFromScreenName(user.Username);
+                            }
+
+                            Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                        }
                     }
                 }
             }
