@@ -185,7 +185,7 @@ namespace BirdieLib
                             {
                                 string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
 
-                                //Tweet.PublishRetweet(tweet);
+                                Tweet.PublishRetweet(tweet);
                                 RetweetHistory.Add(tweet.Url, pair.Key);
 
                                 SaveRetweetHistory();
