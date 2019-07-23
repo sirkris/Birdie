@@ -30,13 +30,17 @@ namespace BirdieLib
         private readonly Dictionary<string, string> TwitterUserFullnames;
         private Dictionary<string, TwitterUser> TwitterUsers;
 
+        // In test mode, everything functions normally except no retweets are actually sent out.  --Kris
+        private readonly bool TestMode;
+
         public bool Active { get; private set; }
 
-        public BirdieLib()
+        public BirdieLib(bool testMode = false)
         {
             Active = false;
 
             TwitterUsers = new Dictionary<string, TwitterUser>();
+            TestMode = testMode;
 
             // Load config, stats, and retweet history.  --Kris
             string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
@@ -81,11 +85,12 @@ namespace BirdieLib
                                               { 0, "Poser" },
                                               { 1, "Rookie Berner" },
                                               { 10, "Volunteer" },
-                                              { 25, "Aspiring Revolutionary" },
-                                              { 50, "Birdie Bro" },
-                                              { 75, "Fictional Chair-Thrower" },
+                                              { 50, "Aspiring Revolutionary" },
+                                              { 75, "Birdie Bro" },
                                               { 100, "Berner" },
-                                              { 250, "Social Media Soldier" },
+                                              { 200, "Fictional Chair-Thrower" },
+                                              { 300, "Social Media Soldier" },
+                                              { 400, "Berning Man" },
                                               { 500, "Berner-Elite" },
                                               { 1000, "Revolutionary Legend" }
                                           })
@@ -185,7 +190,11 @@ namespace BirdieLib
                             {
                                 string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
 
-                                Tweet.PublishRetweet(tweet);
+                                if (!TestMode)
+                                {
+                                    Tweet.PublishRetweet(tweet);
+                                }
+
                                 RetweetHistory.Add(tweet.Url, pair.Key);
 
                                 SaveRetweetHistory();

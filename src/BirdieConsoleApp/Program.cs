@@ -8,7 +8,7 @@ namespace BirdieConsoleApp
         static void Main(string[] args)
         {
             // A very basic console app running BirdieLib.  --Kris
-            BirdieLib.BirdieLib birdieLib = new BirdieLib.BirdieLib();
+            BirdieLib.BirdieLib birdieLib = new BirdieLib.BirdieLib(args[0].Equals("testmode"));
 
             birdieLib.Start();
             birdieLib.RetweetsUpdate += C_StatsUpdated;
