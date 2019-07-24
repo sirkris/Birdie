@@ -13,7 +13,7 @@ namespace BirdieConsoleApp
             birdieLib.Start();
             birdieLib.RetweetsUpdate += C_StatsUpdated;
 
-            Console.WriteLine("Birdie is now running.  Press any key to exit....");
+            Console.WriteLine("Birdie is now running" + (args[0].Equals("testmode") ? " in test mode" : "") + ".  Press any key to exit....");
 
             Console.ReadKey();
 
@@ -25,14 +25,18 @@ namespace BirdieConsoleApp
 
         public static void C_StatsUpdated(object sender, RetweetEventArgs e)
         {
-            Console.WriteLine("[" + DateTime.Now.ToString("D") + "]: Retweet #" + e.Score.ToString() + " from " + e.SourceUser + ": " + e.Tweet);
+            Console.WriteLine("[" + DateTime.Now.ToString("F") + "]: Retweet #" + e.Score.ToString() + " from " + e.SourceUser + ": " + e.Tweet);
 
-            if (!e.NewRank.Equals(e.OldRank) 
+            if (!e.NewRank.Equals(e.OldRank)
                 && (e.SourceUser.Equals("BernieSanders") || e.SourceUser.Equals("SenSanders")))
             {
-                Console.WriteLine("********************");
+                Console.WriteLine("************************************************************");
                 Console.WriteLine("Congratulations!  You have earned a new rank:  " + e.NewRank);
-                Console.WriteLine("********************");
+                Console.WriteLine("************************************************************");
+            }
+            else
+            {
+                Console.WriteLine("[Current Rank: " + e.NewRank + "]");
             }
         }
     }
