@@ -15,6 +15,9 @@ namespace BirdieLib
         private Thread ControlThread;
         private Dictionary<string, IEnumerable<ITweet>> Tweets;
 
+        private TwitterCredentials TwitterCredentials;
+        private IAuthenticationContext AuthenticationContext;
+
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
 
         public Dictionary<string, Target> Targets;
@@ -25,61 +28,19 @@ namespace BirdieLib
         public TwitterConfig TwitterConfig;
 
         private readonly Dictionary<string, string> TwitterUserFullnames;
+        private Dictionary<string, TwitterUser> TwitterUsers;
+
+        // In test mode, everything functions normally except no retweets are actually sent out.  --Kris
+        private readonly bool TestMode;
 
         public bool Active { get; private set; }
 
-        public BirdieLib()
+        public BirdieLib(bool testMode = false)
         {
             Active = false;
 
-            // Only Bernie's tweets are monitored by default.  --Kris
-            Targets = new Dictionary<string, Target>
-            {
-                {
-                    "Bernie Sanders", new Target("Bernie Sanders", new List<TwitterUser>
-                                      {
-                                          new TwitterUser("BernieSanders"),
-                                          new TwitterUser("SenSanders")
-                                      },
-                                      new Dictionary<int, string>  // The score value is the number of retweets.  --Kris
-                                      {
-                                          { 0, "Poser" },
-                                          { 1, "Rookie Berner" },
-                                          { 10, "Volunteer" },
-                                          { 25, "Aspiring Revolutionary" },
-                                          { 50, "Birdie Bro" },
-                                          { 75, "Fictional Chair-Thrower" },
-                                          { 100, "Berner" },
-                                          { 250, "Social Media Soldier" },
-                                          { 500, "Berner-Elite" },
-                                          { 1000, "Revolutionary Legend" }
-                                      })
-                },
-                {
-                    "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<TwitterUser> { new TwitterUser("TulsiGabbard", false) },
-                                     new Dictionary<int, string>
-                                     {
-                                          { 0, "Poser" },
-                                          { 1, "Tulsi Gabbard Supporter" }
-                                     })
-                },
-                {
-                    "Jill Stein", new Target("Jill Stein", new List<TwitterUser> { new TwitterUser("DrJillStein", false) },
-                                     new Dictionary<int, string>
-                                     {
-                                          { 0, "Poser" },
-                                          { 1, "Jill Stein Supporter" }
-                                     })
-                }
-            };
-
-            TwitterUserFullnames = new Dictionary<string, string>
-            {
-                { "BernieSanders", "Bernie Sanders" },
-                { "SenSanders", "Bernie Sanders" },
-                { "TulsiGabbard", "Tulsi Gabbard" },
-                { "DrJillStein", "Jill Stein" }
-            };
+            TwitterUsers = new Dictionary<string, TwitterUser>();
+            TestMode = testMode;
 
             // Load config, stats, and retweet history.  --Kris
             string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
@@ -102,7 +63,78 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            TwitterConfig = new TwitterConfig();
+            TwitterConfig = new TwitterConfig(null);
+            LoadTwitterCredentials();
+
+            TweetinviConfig.CurrentThreadSettings.TweetMode = TweetMode.Extended;
+            TweetinviConfig.CurrentThreadSettings.InitialiseFrom(TweetinviConfig.ApplicationSettings);
+
+            // Only Bernie's tweets are monitored by default.  --Kris
+            if (Targets == null)
+            {
+                Targets = new Dictionary<string, Target>
+                {
+                    {
+                        "Bernie Sanders", new Target("Bernie Sanders", new List<string>
+                                          {
+                                              "BernieSanders",
+                                              "SenSanders"
+                                          },
+                                          new Dictionary<int, string>  // The score value is the number of retweets.  --Kris
+                                          {
+                                              { 0, "Poser" },
+                                              { 1, "Rookie Berner" },
+                                              { 50, "Volunteer" },
+                                              { 250, "Aspiring Revolutionary" },
+                                              { 500, "Birdie Bro" },
+                                              { 1000, "Berner" },
+                                              { 2500, "Fictional Chair-Thrower" },
+                                              { 5000, "Social Media Soldier" },
+                                              { 7000, "Berning Man" },
+                                              { 8000, "Diabolical Socalist" },
+                                              { 10000, "Berner-Elite" },
+                                              { 15000, "Revolutionary Legend" }
+                                          })
+                    },
+                    {
+                        "Tulsi Gabbard", new Target("Tulsi Gabbard", new List<string> { "TulsiGabbard" },
+                                         new Dictionary<int, string>
+                                         {
+                                              { 0, "Poser" },
+                                              { 1, "Tulsi Gabbard Supporter" }
+                                         }, false)
+                    },
+                    {
+                        "Jill Stein", new Target("Jill Stein", new List<string> { "DrJillStein" },
+                                         new Dictionary<int, string>
+                                         {
+                                              { 0, "Poser" },
+                                              { 1, "Jill Stein Supporter" }
+                                         }, false)
+                    }
+                };
+            }
+
+            if (RetweetHistory == null)
+            {
+                RetweetHistory = new Dictionary<string, string>();
+            }
+
+            TwitterUserFullnames = new Dictionary<string, string>
+            {
+                { "BernieSanders", "Bernie Sanders" },
+                { "SenSanders", "Bernie Sanders" },
+                { "TulsiGabbard", "Tulsi Gabbard" },
+                { "DrJillStein", "Jill Stein" }
+            };
+        }
+
+        private void LoadTwitterCredentials()
+        {
+            TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret, TwitterConfig.AccessToken, TwitterConfig.AccessTokenSecret);
+            AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
+
+            Auth.SetCredentials(TwitterCredentials);
         }
 
         public void Start()
@@ -112,6 +144,10 @@ namespace BirdieLib
                 Active = true;
 
                 ControlThread = new Thread(() => ControlLoop());
+
+                ControlThread.Start();
+
+                while (!ControlThread.IsAlive) { }
             }
         }
 
@@ -139,19 +175,27 @@ namespace BirdieLib
 
         private void ControlLoop()
         {
-            // Every hour, check followed Twitter accounts for new tweets and retweet.  --Kris
+            // Every hour, check followed Twitter accounts for new tweets and retweet.  Limit 10 retweets per hour to avoid spam.  --Kris
             while (Active)
             {
                 if (!LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
                 {
+                    int i = 0;
                     LoadTimelines();
                     foreach (KeyValuePair<string, IEnumerable<ITweet>> pair in Tweets)
                     {
                         foreach (ITweet tweet in pair.Value)
                         {
-                            if (!RetweetHistory.ContainsKey(tweet.Url))
+                            if (!RetweetHistory.ContainsKey(tweet.Url) 
+                                && tweet.CreatedAt.AddDays(1) > DateTime.Now)
                             {
-                                Tweet.PublishRetweet(tweet);
+                                string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
+
+                                if (!TestMode)
+                                {
+                                    Tweet.PublishRetweet(tweet);
+                                }
+
                                 RetweetHistory.Add(tweet.Url, pair.Key);
 
                                 SaveRetweetHistory();
@@ -166,21 +210,33 @@ namespace BirdieLib
 
                                 SaveTargets();
 
-                                string oldRank = GetRank(pair.Key);
-
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
                                 {
                                     SourceUser = pair.Key,
                                     Score = Targets[TwitterUserFullnames[pair.Key]].Stats.Retweets,
                                     OldRank = oldRank,
-                                    NewRank = GetRank(pair.Key),
+                                    NewRank = GetRank(TwitterUserFullnames[pair.Key]),
                                     TweetedAt = tweet.CreatedAt,
                                     RetweetedAt = DateTime.Now,
                                     Tweet = tweet.Text
                                 };
                                 RetweetsUpdate?.Invoke(this, args);
+
+                                i++;
+                                if (i >= 10)
+                                {
+                                    break;
+                                }
+
+                                // Wait a minute between each tweet.  --Kris
+                                Wait(60000);
                             }
+                        }
+
+                        if (i >= 10)
+                        {
+                            break;
                         }
                     }
 
@@ -227,16 +283,25 @@ namespace BirdieLib
             Tweets = new Dictionary<string, IEnumerable<ITweet>>();
             foreach (KeyValuePair<string, Target> pair in Targets)
             {
-                foreach (TwitterUser user in pair.Value.TwitterUsers)
+                if (pair.Value.Enabled)
                 {
-                    if (user.Enabled)
+                    foreach (string userName in pair.Value.TwitterUsers)
                     {
-                        if (user.IUser == null)
+                        if (!TwitterUsers.ContainsKey(userName))
                         {
-                            user.IUser = User.GetUserFromScreenName(user.Username);
+                            TwitterUsers.Add(userName, new TwitterUser(userName));
                         }
-                        
-                        Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                        TwitterUser user = TwitterUsers[userName];
+
+                        if (user.Enabled)
+                        {
+                            if (user.IUser == null)
+                            {
+                                user.IUser = User.GetUserFromScreenName(user.Username);
+                            }
+
+                            Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                        }
                     }
                 }
             }
