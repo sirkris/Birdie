@@ -88,11 +88,12 @@ namespace BirdieLib
                                               { 250, "Aspiring Revolutionary" },
                                               { 500, "Birdie Bro" },
                                               { 1000, "Berner" },
-                                              { 2000, "Fictional Chair-Thrower" },
-                                              { 3000, "Social Media Soldier" },
-                                              { 4000, "Berning Man" },
-                                              { 5000, "Berner-Elite" },
-                                              { 10000, "Revolutionary Legend" }
+                                              { 2500, "Fictional Chair-Thrower" },
+                                              { 5000, "Social Media Soldier" },
+                                              { 7000, "Berning Man" },
+                                              { 8000, "Diabolical Socalist" },
+                                              { 10000, "Berner-Elite" },
+                                              { 15000, "Revolutionary Legend" }
                                           })
                     },
                     {
