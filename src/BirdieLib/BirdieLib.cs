@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -43,7 +44,7 @@ namespace BirdieLib
             TestMode = testMode;
 
             // Load config, stats, and retweet history.  --Kris
-            string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
+            string targetsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "targets.json");
             if (File.Exists(targetsPath))
             {
                 try
@@ -53,7 +54,7 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            string retweetHistoryPath = Path.Combine(Environment.CurrentDirectory, "retweetHistory.json");
+            string retweetHistoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "retweetHistory.json");
             if (File.Exists(retweetHistoryPath))
             {
                 try
@@ -63,14 +64,14 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            TwitterConfig = new TwitterConfig(null);
+            TwitterConfig = new TwitterConfig(true);
             LoadTwitterCredentials();
 
             TweetinviConfig.CurrentThreadSettings.TweetMode = TweetMode.Extended;
             TweetinviConfig.CurrentThreadSettings.InitialiseFrom(TweetinviConfig.ApplicationSettings);
 
             // Only Bernie's tweets are monitored by default.  --Kris
-            if (Targets == null)
+            if (Targets == null || Targets.Count == 0)
             {
                 Targets = new Dictionary<string, Target>
                 {
@@ -231,10 +232,16 @@ namespace BirdieLib
 
                                 // Wait a minute between each tweet.  --Kris
                                 Wait(60000);
+
+                                if (!Active)
+                                {
+                                    break;
+                                }
                             }
                         }
 
-                        if (i >= 10)
+                        if (i >= 10 
+                            || !Active)
                         {
                             break;
                         }
@@ -247,14 +254,21 @@ namespace BirdieLib
             }
         }
 
+        public string GetVersion()
+        {
+            string res = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            return (string.IsNullOrWhiteSpace(res) || !res.Contains(".") ? res : res.Substring(0, res.LastIndexOf(".")) +
+                (res.EndsWith(".1") ? "-develop" : res.EndsWith(".2") ? "-beta" : ""));
+        }
+
         private void SaveTargets()
         {
-            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "targets.json"), JsonConvert.SerializeObject(Targets));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "targets.json"), JsonConvert.SerializeObject(Targets));
         }
 
         private void SaveRetweetHistory()
         {
-            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "retweetHistory.json"), JsonConvert.SerializeObject(RetweetHistory));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "retweetHistory.json"), JsonConvert.SerializeObject(RetweetHistory));
         }
 
         public string GetRank(string targetFullname)
@@ -285,24 +299,43 @@ namespace BirdieLib
             {
                 if (pair.Value.Enabled)
                 {
-                    foreach (string userName in pair.Value.TwitterUsers)
+                    int retry = 3;
+                    bool success;
+                    do
                     {
-                        if (!TwitterUsers.ContainsKey(userName))
+                        success = true;
+                        try
                         {
-                            TwitterUsers.Add(userName, new TwitterUser(userName));
-                        }
-                        TwitterUser user = TwitterUsers[userName];
-
-                        if (user.Enabled)
-                        {
-                            if (user.IUser == null)
+                            foreach (string userName in pair.Value.TwitterUsers)
                             {
-                                user.IUser = User.GetUserFromScreenName(user.Username);
-                            }
+                                if (!TwitterUsers.ContainsKey(userName))
+                                {
+                                    TwitterUsers.Add(userName, new TwitterUser(userName));
+                                }
+                                TwitterUser user = TwitterUsers[userName];
 
-                            Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                                if (user.Enabled)
+                                {
+                                    if (user.IUser == null)
+                                    {
+                                        user.IUser = User.GetUserFromScreenName(user.Username);
+                                    }
+
+                                    Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                                }
+                            }
                         }
-                    }
+                        catch (Exception)
+                        {
+                            success = false;
+                            retry--;
+
+                            if (retry > 0)
+                            {
+                                Wait(3000);
+                            }
+                        }
+                    } while (!success && retry > 0);
                 }
             }
         }

@@ -19,34 +19,48 @@ namespace BirdieLib
         [JsonProperty("AccessTokenSecret")]
         public string AccessTokenSecret { get; set; }
 
-        private readonly string ConfigPath;
+        private readonly string ConfigJSON;
 
-        public TwitterConfig(string configPath)
+        public TwitterConfig(bool autoLoad = false)
         {
-            if (string.IsNullOrEmpty(configPath))
+            if (autoLoad)
             {
-                configPath = Environment.CurrentDirectory;
+                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BirdieLib.TwitterConfig.json"))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        ConfigJSON = reader.ReadToEnd();
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(ConfigJSON))
+                {
+                    throw new Exception("Unable to load TwitterConfig.json.");
+                }
+
+                TwitterConfig twitterConfig = Load();
+
+                ConsumerKey = twitterConfig.ConsumerKey;
+                ConsumerSecret = twitterConfig.ConsumerSecret;
+                AccessToken = twitterConfig.AccessToken;
+                AccessTokenSecret = twitterConfig.AccessTokenSecret;
             }
-            ConfigPath = configPath;
-
-            TwitterConfig twitterConfig = Load();
-
-            ConsumerKey = twitterConfig.ConsumerKey;
-            ConsumerSecret = twitterConfig.ConsumerSecret;
-            AccessToken = twitterConfig.AccessToken;
-            AccessTokenSecret = twitterConfig.AccessTokenSecret;
         }
-
-        public TwitterConfig() { }
 
         private TwitterConfig Load()
         {
-            return JsonConvert.DeserializeObject<TwitterConfig>(File.ReadAllText(Path.Combine(ConfigPath, "TwitterConfig.json")));
+            return JsonConvert.DeserializeObject<TwitterConfig>(ConfigJSON);
         }
 
         public void Save()
         {
-            File.WriteAllText(Path.Combine(ConfigPath, "TwitterConfig.json"), JsonConvert.SerializeObject(this));
+            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BirdieLib.TwitterConfig.json"))
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(JsonConvert.SerializeObject(this));
+                }
+            }
         }
     }
 }
