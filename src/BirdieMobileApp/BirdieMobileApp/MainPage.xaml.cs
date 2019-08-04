@@ -1,4 +1,5 @@
 ﻿using BirdieLib.EventArgs;
+using Plugin.LocalNotifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,14 @@ namespace BirdieMobileApp
         public MainPage()
         {
             InitializeComponent();
+
             BirdieLib = new BirdieLib.BirdieLib();
+
             labelVersion.Text = "Version " + BirdieLib.GetVersion();
-            myRetweets.Text = "My Retweets: " + BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString();
-            lastRetweet.Text = "Last Retweet: " + (BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue ? BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("G") : "N/A");
-            myRank.Text = "Current Rank: " + BirdieLib.GetRank("Bernie Sanders");
+
+            RefreshRetweets();
+            RefreshLastRetweet();
+            RefreshRank();
         }
 
         void Button_Clicked(object sender, EventArgs e)
@@ -28,7 +32,7 @@ namespace BirdieMobileApp
             {
                 BirdieLib.Stop();
                 BirdieLib.RetweetsUpdate -= C_StatsUpdated;
-
+                
                 ((Button)sender).Text = "Start";
                 ((Button)sender).TextColor = Color.LawnGreen;
                 ((Button)sender).BackgroundColor = Color.DarkGreen;
@@ -44,9 +48,43 @@ namespace BirdieMobileApp
             }
         }
 
+        private void RefreshRetweets()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+               myRetweets.Text = "My Retweets: " + BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString();
+            });
+        }
+
+        private void RefreshLastRetweet()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                lastRetweet.Text = "Last Retweet: " + (BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue ? BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("G") : "N/A");
+            });
+        }
+
+        private void RefreshRank()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                myRank.Text = "Current Rank: " + BirdieLib.GetRank("Bernie Sanders");
+            });
+        }
+
         public void C_StatsUpdated(object sender, RetweetEventArgs e)
         {
-            // TODO - Update stats displayed and activate notification if new rank is achieved.  --Kris
+            // Update stats displayed and activate notification if new rank is achieved.  --Kris
+            RefreshRetweets();
+            RefreshLastRetweet();
+            RefreshRank();
+
+            if (!e.NewRank.Equals(e.OldRank)
+                && (e.SourceUser.Equals("BernieSanders") || e.SourceUser.Equals("SenSanders")))
+            {
+                // Fire notification of new rank.  --Kris
+                CrossLocalNotifications.Current.Show("New Rank", "Congratulations! You've earned a new rank: " + e.NewRank);
+            }
         }
     }
 }
