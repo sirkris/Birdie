@@ -192,5 +192,8 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\birdie_splash_l.png" />
   </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\birdie.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>
