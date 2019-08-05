@@ -30,7 +30,7 @@
            TextColor="Lime"
            HorizontalOptions="Center"
            VerticalOptions="CenterAndExpand" />
-        <Label x:Name="myRetweets" Text="" 
+        <Label x:Name="otherStats" Text="" 
            FontSize="Small"
            TextColor="Aqua"
            HorizontalOptions="Center"

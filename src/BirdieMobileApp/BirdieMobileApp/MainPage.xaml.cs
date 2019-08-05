@@ -52,7 +52,11 @@ namespace BirdieMobileApp
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-               myRetweets.Text = "My Retweets: " + BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString();
+                otherStats.Text = "My Retweets: " + BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString()
+                                 + Environment.NewLine
+                                 + "Total Retweets: " + BirdieLib.ClientStats.TotalRetweets.ToString()
+                                 + Environment.NewLine
+                                 + "Active Users: " + BirdieLib.ClientStats.ActiveUsers.ToString() + " / " + BirdieLib.ClientStats.TotalUsers.ToString();
             });
         }
 
@@ -60,7 +64,7 @@ namespace BirdieMobileApp
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                lastRetweet.Text = "Last Retweet: " + (BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue ? BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("G") : "N/A");
+                lastRetweet.Text = "Last Retweet: " + (BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue ? BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("g") : "N/A");
             });
         }
 

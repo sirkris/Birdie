@@ -1,5 +1,7 @@
 ﻿using BirdieLib.EventArgs;
+using BirdieLib.Structures;
 using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +20,9 @@ namespace BirdieLib
 
         private TwitterCredentials TwitterCredentials;
         private IAuthenticationContext AuthenticationContext;
+
+        private Request Request { get; set; }
+        public ClientStats ClientStats { get; private set; }
 
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
 
@@ -42,6 +47,8 @@ namespace BirdieLib
 
             TwitterUsers = new Dictionary<string, TwitterUser>();
             TestMode = testMode;
+
+            Request = new Request();
 
             // Load config, stats, and retweet history.  --Kris
             string targetsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "targets.json");
@@ -128,6 +135,8 @@ namespace BirdieLib
                 { "TulsiGabbard", "Tulsi Gabbard" },
                 { "DrJillStein", "Jill Stein" }
             };
+
+            ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets")));
         }
 
         private void LoadTwitterCredentials()
@@ -210,6 +219,9 @@ namespace BirdieLib
                                 Targets[TwitterUserFullnames[pair.Key]].Stats.LastRetweet = DateTime.Now;
 
                                 SaveTargets();
+
+                                // Update the Birdie API and retrieve new totals.  --Kris
+                                ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets", Method.POST)));
 
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
