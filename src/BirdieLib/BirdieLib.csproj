@@ -9,18 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="TwitterConfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="TwitterConfig.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="RestSharp" Version="106.6.10" />
     <PackageReference Include="TweetinviAPI" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TwitterConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

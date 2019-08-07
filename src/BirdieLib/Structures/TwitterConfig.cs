@@ -21,29 +21,45 @@ namespace BirdieLib
 
         private readonly string ConfigJSON;
 
-        public TwitterConfig(bool autoLoad = false)
+        public TwitterConfig(bool autoLoad = false, string defaultConsumerKey = null, string defaultConsumerSecret = null)
         {
             if (autoLoad)
             {
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BirdieLib.TwitterConfig.json"))
+                string twitterConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TwitterConfig.json");
+                if (!File.Exists(twitterConfigPath))
                 {
-                    using (StreamReader reader = new StreamReader(stream))
+                    try
                     {
-                        ConfigJSON = reader.ReadToEnd();
+                        File.Copy(Path.Combine(Environment.CurrentDirectory, "TwitterConfig.json"), twitterConfigPath);
+                    }
+                    catch (Exception)
+                    {
+                        // If we can't find the resource file, just re-create it.  --Kris
+                        File.WriteAllText(twitterConfigPath, JsonConvert.SerializeObject(
+                            new TwitterConfig(defaultConsumerKey: "VMWUlZGK9hgnk4iBqELUc7So5", defaultConsumerSecret: "X5gFdMwwDmWB7Dq5FbSVtYETLx5R2GjHYM92x67bRexAFQS3BJ")));
                     }
                 }
 
+                try
+                {
+                    ConfigJSON = File.ReadAllText(twitterConfigPath);
+                }
+                catch (Exception) { }
+
                 if (string.IsNullOrWhiteSpace(ConfigJSON))
                 {
-                    throw new Exception("Unable to load TwitterConfig.json.");
+                    ConsumerKey = defaultConsumerKey;
+                    ConsumerSecret = defaultConsumerSecret;
                 }
+                else
+                {
+                    TwitterConfig twitterConfig = Load();
 
-                TwitterConfig twitterConfig = Load();
-
-                ConsumerKey = twitterConfig.ConsumerKey;
-                ConsumerSecret = twitterConfig.ConsumerSecret;
-                AccessToken = twitterConfig.AccessToken;
-                AccessTokenSecret = twitterConfig.AccessTokenSecret;
+                    ConsumerKey = twitterConfig.ConsumerKey;
+                    ConsumerSecret = twitterConfig.ConsumerSecret;
+                    AccessToken = twitterConfig.AccessToken;
+                    AccessTokenSecret = twitterConfig.AccessTokenSecret;
+                }
             }
         }
 
@@ -54,13 +70,7 @@ namespace BirdieLib
 
         public void Save()
         {
-            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BirdieLib.TwitterConfig.json"))
-            {
-                using (StreamWriter writer = new StreamWriter(stream))
-                {
-                    writer.Write(JsonConvert.SerializeObject(this));
-                }
-            }
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TwitterConfig.json"), JsonConvert.SerializeObject(this));
         }
     }
 }
