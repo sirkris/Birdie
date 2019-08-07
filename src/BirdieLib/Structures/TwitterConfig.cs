@@ -57,8 +57,8 @@ namespace BirdieLib
 
                     ConsumerKey = twitterConfig.ConsumerKey;
                     ConsumerSecret = twitterConfig.ConsumerSecret;
-                    AccessToken = twitterConfig.AccessToken;
-                    AccessTokenSecret = twitterConfig.AccessTokenSecret;
+                    AccessToken = (!twitterConfig.AccessToken.Equals("YourAccessToken") ? twitterConfig.AccessToken : null);
+                    AccessTokenSecret = (!twitterConfig.AccessTokenSecret.Equals("YourAccessTokenSecret") ? twitterConfig.AccessTokenSecret : null);
                 }
             }
         }

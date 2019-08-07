@@ -72,7 +72,10 @@ namespace BirdieLib
             }
 
             TwitterConfig = new TwitterConfig(true);
-            LoadTwitterCredentials();
+            if (!string.IsNullOrWhiteSpace(TwitterConfig.AccessToken) && !string.IsNullOrWhiteSpace(TwitterConfig.AccessTokenSecret))
+            {
+                LoadTwitterCredentials();
+            }
 
             TweetinviConfig.CurrentThreadSettings.TweetMode = TweetMode.Extended;
             TweetinviConfig.CurrentThreadSettings.InitialiseFrom(TweetinviConfig.ApplicationSettings);
@@ -137,6 +140,16 @@ namespace BirdieLib
             };
 
             ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets")));
+        }
+
+        public void SetTwitterTokens(string accessToken, string accessTokenSecret)
+        {
+            TwitterConfig.AccessToken = accessToken;
+            TwitterConfig.AccessTokenSecret = accessTokenSecret;
+
+            TwitterConfig.Save();
+
+            LoadTwitterCredentials();
         }
 
         private void LoadTwitterCredentials()
