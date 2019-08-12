@@ -4,7 +4,8 @@
              xmlns:local="clr-namespace:BirdieMobileApp"
              Title="Birdie"
              BackgroundColor="DarkSlateBlue"
-             x:Class="BirdieMobileApp.MainPage">
+             x:Class="BirdieMobileApp.MainPage"
+             NavigationPage.HasNavigationBar="False">
 
     <StackLayout>
         <!-- Place new controls here -->
@@ -40,7 +41,9 @@
            TextColor="Aqua"
            HorizontalOptions="Center"
            VerticalOptions="Center" />
-        <Button Text="Start" BackgroundColor="DarkGreen"  TextColor="LawnGreen"  FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="EndAndExpand"  Clicked="Button_Clicked" />
+        <Button x:Name="StartButton" 
+                Text="Start" BackgroundColor="DarkGreen"  TextColor="LawnGreen"  FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="EndAndExpand" 
+                Pressed="StartButton_Pressed" Released="StartButton_Released"/>
         <Label Text="#FeelTheBern" 
            FontSize="Micro"
            TextColor="OrangeRed"

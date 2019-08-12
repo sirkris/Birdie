@@ -10,17 +10,37 @@ namespace BirdieConsoleApp
             // A very basic console app running BirdieLib.  --Kris
             BirdieLib.BirdieLib birdieLib = new BirdieLib.BirdieLib(args[0].Equals("testmode"));
 
-            birdieLib.Start();
-            birdieLib.RetweetsUpdate += C_StatsUpdated;
+            if (string.IsNullOrWhiteSpace(birdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(birdieLib.TwitterConfig.AccessTokenSecret))
+            {
+                Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                Console.WriteLine("Unable to proceed with execution!  No authorized user.");
+                Console.WriteLine("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
-            Console.WriteLine("Birdie is now running" + (args[0].Equals("testmode") ? " in test mode" : "") + ".  Press any key to exit....");
+                Console.WriteLine();
 
-            Console.ReadKey();
+                Console.WriteLine("Auth URL:");
+                Console.WriteLine(birdieLib.SetCredentials().AuthorizationURL);
 
-            birdieLib.RetweetsUpdate -= C_StatsUpdated;
-            birdieLib.Stop();
+                Console.WriteLine();
 
-            Console.WriteLine("Birdie has stopped.");
+                Console.WriteLine("Press any key to exit....");
+
+                Console.ReadKey();
+            }
+            else
+            {
+                birdieLib.Start();
+                birdieLib.RetweetsUpdate += C_StatsUpdated;
+
+                Console.WriteLine("Birdie is now running" + (args[0].Equals("testmode") ? " in test mode" : "") + ".  Press any key to exit....");
+
+                Console.ReadKey();
+
+                birdieLib.RetweetsUpdate -= C_StatsUpdated;
+                birdieLib.Stop();
+
+                Console.WriteLine("Birdie has stopped.");
+            }
         }
 
         public static void C_StatsUpdated(object sender, RetweetEventArgs e)

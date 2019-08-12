@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -12,39 +13,41 @@ namespace BirdieMobileApp
     public partial class MainPage : ContentPage
     {
         private BirdieLib.BirdieLib BirdieLib;
+        private DateTime? PressedStart;
 
-        public MainPage()
+        public MainPage(BirdieLib.BirdieLib birdieLib)
         {
             InitializeComponent();
 
-            BirdieLib = new BirdieLib.BirdieLib();
+            BirdieLib = birdieLib;
 
             labelVersion.Text = "Version " + BirdieLib.GetVersion();
 
             RefreshRetweets();
             RefreshLastRetweet();
             RefreshRank();
+
+            if (string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessTokenSecret))
+            {
+                Navigation.PushAsync(new TwitterAuth(BirdieLib));
+            }
+
+            BirdieLib.StatusUpdate += C_ActiveUpdated;
         }
 
-        void Button_Clicked(object sender, EventArgs e)
+        private void UpdateButton(bool active)
         {
-            if (BirdieLib.Active)
+            if (active)
             {
-                BirdieLib.Stop();
-                BirdieLib.RetweetsUpdate -= C_StatsUpdated;
-                
-                ((Button)sender).Text = "Start";
-                ((Button)sender).TextColor = Color.LawnGreen;
-                ((Button)sender).BackgroundColor = Color.DarkGreen;
+                StartButton.Text = "Stop";
+                StartButton.TextColor = Color.Yellow;
+                StartButton.BackgroundColor = Color.Red;
             }
             else
             {
-                BirdieLib.Start();
-                BirdieLib.RetweetsUpdate += C_StatsUpdated;
-
-                ((Button)sender).Text = "Stop";
-                ((Button)sender).TextColor = Color.Yellow;
-                ((Button)sender).BackgroundColor = Color.Red;
+                StartButton.Text = "Start";
+                StartButton.TextColor = Color.LawnGreen;
+                StartButton.BackgroundColor = Color.DarkGreen;
             }
         }
 
@@ -88,6 +91,45 @@ namespace BirdieMobileApp
             {
                 // Fire notification of new rank.  --Kris
                 CrossLocalNotifications.Current.Show("New Rank", "Congratulations! You've earned a new rank: " + e.NewRank);
+            }
+        }
+
+        public void C_ActiveUpdated(object sender, StatusUpdateEventArgs e)
+        {
+            UpdateButton(e.Active);
+        }
+
+        private void StartButton_Pressed(object sender, EventArgs e)
+        {
+            PressedStart = DateTime.Now;
+        }
+
+        private void StartButton_Released(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessToken)
+                || string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessTokenSecret)
+                || (!BirdieLib.Active && PressedStart.HasValue && PressedStart.Value.AddSeconds(10) <= DateTime.Now))
+            {
+                // Hold the Start button for 10 seconds to clear Twitter credentials and return to auth screen.  --Kris
+                BirdieLib.TwitterConfig.Clear();
+                BirdieLib.TwitterConfig.Save();
+
+                Navigation.PushAsync(new TwitterAuth(BirdieLib));
+
+                BirdieLib.RetweetsUpdate += C_StatsUpdated;
+            }
+            else
+            {
+                if (BirdieLib.Active)
+                {
+                    BirdieLib.Stop();
+                    BirdieLib.RetweetsUpdate -= C_StatsUpdated;
+                }
+                else
+                {
+                    BirdieLib.Start();
+                    BirdieLib.RetweetsUpdate += C_StatsUpdated;
+                }
             }
         }
     }

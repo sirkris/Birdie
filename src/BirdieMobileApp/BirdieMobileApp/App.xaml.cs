@@ -7,11 +7,15 @@ namespace BirdieMobileApp
 {
     public partial class App : Application
     {
+        public NavigationPage NavPage;
+
         public App()
         {
             InitializeComponent();
 
-            MainPage = new MainPage();
+            BirdieLib.BirdieLib birdieLib = new BirdieLib.BirdieLib();
+
+            MainPage = new NavigationPage(new MainPage(birdieLib));
         }
 
         protected override void OnStart()

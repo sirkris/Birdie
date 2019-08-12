@@ -21,7 +21,10 @@ namespace BirdieLib
 
         private readonly string ConfigJSON;
 
-        public TwitterConfig(bool autoLoad = false, string defaultConsumerKey = null, string defaultConsumerSecret = null)
+        private const string DEFAULT_CONSUMER_KEY = "VMWUlZGK9hgnk4iBqELUc7So5";
+        private const string DEFAULT_CONSUMER_SECRET = "X5gFdMwwDmWB7Dq5FbSVtYETLx5R2GjHYM92x67bRexAFQS3BJ";
+
+        public TwitterConfig(bool autoLoad = false)
         {
             if (autoLoad)
             {
@@ -35,8 +38,7 @@ namespace BirdieLib
                     catch (Exception)
                     {
                         // If we can't find the resource file, just re-create it.  --Kris
-                        File.WriteAllText(twitterConfigPath, JsonConvert.SerializeObject(
-                            new TwitterConfig(defaultConsumerKey: "VMWUlZGK9hgnk4iBqELUc7So5", defaultConsumerSecret: "X5gFdMwwDmWB7Dq5FbSVtYETLx5R2GjHYM92x67bRexAFQS3BJ")));
+                        File.WriteAllText(twitterConfigPath, JsonConvert.SerializeObject(new TwitterConfig()));
                     }
                 }
 
@@ -48,19 +50,29 @@ namespace BirdieLib
 
                 if (string.IsNullOrWhiteSpace(ConfigJSON))
                 {
-                    ConsumerKey = defaultConsumerKey;
-                    ConsumerSecret = defaultConsumerSecret;
+                    ConsumerKey = DEFAULT_CONSUMER_KEY;
+                    ConsumerSecret = DEFAULT_CONSUMER_SECRET;
                 }
                 else
                 {
                     TwitterConfig twitterConfig = Load();
 
-                    ConsumerKey = twitterConfig.ConsumerKey;
-                    ConsumerSecret = twitterConfig.ConsumerSecret;
-                    AccessToken = (!twitterConfig.AccessToken.Equals("YourAccessToken") ? twitterConfig.AccessToken : null);
-                    AccessTokenSecret = (!twitterConfig.AccessTokenSecret.Equals("YourAccessTokenSecret") ? twitterConfig.AccessTokenSecret : null);
+                    ConsumerKey = (twitterConfig.ConsumerKey != null && !twitterConfig.ConsumerKey.Equals("YourConsumerKey")
+                        ? twitterConfig.ConsumerKey : DEFAULT_CONSUMER_KEY);
+                    ConsumerSecret = (twitterConfig.ConsumerSecret != null && !twitterConfig.ConsumerSecret.Equals("YourConsumerSecret")
+                        ? twitterConfig.ConsumerSecret : DEFAULT_CONSUMER_SECRET);
+                    AccessToken = (twitterConfig.AccessToken != null && !twitterConfig.AccessToken.Equals("YourAccessToken") ? twitterConfig.AccessToken : null);
+                    AccessTokenSecret = (twitterConfig.AccessTokenSecret != null && !twitterConfig.AccessTokenSecret.Equals("YourAccessTokenSecret") ? twitterConfig.AccessTokenSecret : null);
                 }
             }
+        }
+
+        public void Clear()
+        {
+            ConsumerKey = DEFAULT_CONSUMER_KEY;
+            ConsumerSecret = DEFAULT_CONSUMER_SECRET;
+            AccessToken = null;
+            AccessTokenSecret = null;
         }
 
         private TwitterConfig Load()

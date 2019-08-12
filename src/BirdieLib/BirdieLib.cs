@@ -18,13 +18,14 @@ namespace BirdieLib
         private Thread ControlThread;
         private Dictionary<string, IEnumerable<ITweet>> Tweets;
 
-        private TwitterCredentials TwitterCredentials;
-        private IAuthenticationContext AuthenticationContext;
+        public TwitterCredentials TwitterCredentials;
+        public IAuthenticationContext AuthenticationContext;
 
         private Request Request { get; set; }
         public ClientStats ClientStats { get; private set; }
 
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
+        public event EventHandler<StatusUpdateEventArgs> StatusUpdate;
 
         public Dictionary<string, Target> Targets;
 
@@ -39,14 +40,36 @@ namespace BirdieLib
         // In test mode, everything functions normally except no retweets are actually sent out.  --Kris
         private readonly bool TestMode;
 
-        public bool Active { get; private set; }
+        // In script mode, the control loop runs once, then termination exits.  --Kris
+        private readonly bool ScriptMode;
 
-        public BirdieLib(bool testMode = false)
+        public bool Active
+        {
+            get
+            {
+                return active;
+            }
+            private set
+            {
+                active = value;
+
+                // Fire an event indicating that the Active status has changed.  --Kris
+                StatusUpdateEventArgs args = new StatusUpdateEventArgs
+                {
+                    Active = active
+                };
+                StatusUpdate?.Invoke(this, args);
+            }
+        }
+        private bool active;
+
+        public BirdieLib(bool testMode = false, bool scriptMode = false, bool autoStart = false)
         {
             Active = false;
 
             TwitterUsers = new Dictionary<string, TwitterUser>();
             TestMode = testMode;
+            ScriptMode = scriptMode;
 
             Request = new Request();
 
@@ -140,24 +163,50 @@ namespace BirdieLib
             };
 
             ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets")));
+
+            if (autoStart)
+            {
+                Start();
+            }
         }
 
-        public void SetTwitterTokens(string accessToken, string accessTokenSecret)
+        public void SetTwitterTokens(string accessToken, string accessTokenSecret, bool autoLoad = true)
         {
             TwitterConfig.AccessToken = accessToken;
             TwitterConfig.AccessTokenSecret = accessTokenSecret;
 
             TwitterConfig.Save();
 
-            LoadTwitterCredentials();
+            if (autoLoad)
+            {
+                LoadTwitterCredentials();
+            }
         }
 
-        private void LoadTwitterCredentials()
+        public void LoadTwitterCredentials()
         {
             TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret, TwitterConfig.AccessToken, TwitterConfig.AccessTokenSecret);
             AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
 
             Auth.SetCredentials(TwitterCredentials);
+        }
+
+        public IAuthenticationContext SetCredentials()
+        {
+            TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret);
+            AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
+
+            return AuthenticationContext;
+        }
+
+        public TwitterCredentials ActivatePIN(string pin)
+        {
+            TwitterCredentials = (TwitterCredentials)AuthFlow.CreateCredentialsFromVerifierCode(pin, AuthenticationContext);
+            Auth.SetCredentials(TwitterCredentials);
+
+            SetTwitterTokens(TwitterCredentials.AccessToken, TwitterCredentials.AccessTokenSecret, false);
+
+            return TwitterCredentials;
         }
 
         public void Start()
@@ -255,8 +304,8 @@ namespace BirdieLib
                                     break;
                                 }
 
-                                // Wait a minute between each tweet.  --Kris
-                                Wait(60000);
+                                // Wait a minute between each tweet (or a second in script mode).  --Kris
+                                Wait((ScriptMode ? 1000 : 60000));
 
                                 if (!Active)
                                 {
@@ -273,6 +322,12 @@ namespace BirdieLib
                     }
 
                     LastCheck = DateTime.Now;
+                }
+
+                if (ScriptMode)
+                {
+                    Active = false;
+                    return;
                 }
 
                 Wait(60000);

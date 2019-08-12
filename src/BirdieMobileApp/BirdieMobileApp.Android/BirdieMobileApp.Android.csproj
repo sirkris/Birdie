@@ -82,7 +82,7 @@
     <PackageReference Include="Xamarin.Android.Support.Media.Compat">
       <Version>28.0.0.1</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Forms" Version="3.4.0.1008975" />
+    <PackageReference Include="Xamarin.Forms" Version="4.1.0.673156" />
     <PackageReference Include="Xamarin.Android.Support.Design" Version="27.0.2.1" />
     <PackageReference Include="Xamarin.Android.Support.v7.AppCompat" Version="28.0.0.1" />
     <PackageReference Include="Xamarin.Android.Support.v4" Version="28.0.0.1" />
@@ -117,12 +117,6 @@
     <AndroidResource Include="Resources\mipmap-xxhdpi\launcher_foreground.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\icon.png" />
     <AndroidResource Include="Resources\mipmap-xxxhdpi\launcher_foreground.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BirdieMobileApp\BirdieMobileApp.csproj">
-      <Project>{BDFF7CB8-F3DF-47F2-B73A-C5C08E8CFF86}</Project>
-      <Name>BirdieMobileApp</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\birdie_splash.png" />
@@ -194,6 +188,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\birdie.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BirdieMobileApp\BirdieMobileApp.csproj">
+      <Project>{c6e04333-0db9-406a-8549-3af0b72fa542}</Project>
+      <Name>BirdieMobileApp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
 </Project>
