@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BirdieMobileApp.EventArgs;
+using System;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -9,13 +10,11 @@ namespace BirdieMobileApp
     {
         public NavigationPage NavPage;
 
-        public App()
+        public App(MainPage mainPage)
         {
             InitializeComponent();
 
-            BirdieLib.BirdieLib birdieLib = new BirdieLib.BirdieLib();
-
-            MainPage = new NavigationPage(new MainPage(birdieLib));
+            MainPage = new NavigationPage(mainPage);
         }
 
         protected override void OnStart()

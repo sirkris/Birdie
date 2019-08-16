@@ -41,7 +41,7 @@ namespace BirdieLib
         private readonly bool TestMode;
 
         // In script mode, the control loop runs once, then termination exits.  --Kris
-        private readonly bool ScriptMode;
+        public bool ScriptMode { get; set; }
 
         public bool Active
         {
@@ -315,7 +315,8 @@ namespace BirdieLib
                         }
 
                         if (i >= 10 
-                            || !Active)
+                            || !Active 
+                            || (i >=3 && ScriptMode))
                         {
                             break;
                         }

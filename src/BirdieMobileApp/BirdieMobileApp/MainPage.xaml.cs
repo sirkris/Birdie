@@ -1,4 +1,5 @@
 ﻿using BirdieLib.EventArgs;
+using BirdieMobileApp.EventArgs;
 using Plugin.LocalNotifications;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ namespace BirdieMobileApp
     {
         private BirdieLib.BirdieLib BirdieLib;
         private DateTime? PressedStart;
+
+        public event EventHandler<ButtonClickedEventArgs> ButtonClicked;
+        public event EventHandler<AlarmActiveEventArgs> AlarmActive;
 
         public MainPage(BirdieLib.BirdieLib birdieLib)
         {
@@ -32,7 +36,14 @@ namespace BirdieMobileApp
                 Navigation.PushAsync(new TwitterAuth(BirdieLib));
             }
 
-            BirdieLib.StatusUpdate += C_ActiveUpdated;
+            //BirdieLib.StatusUpdate += C_ActiveUpdated;  // Deprecated; fires when BirdieLib.Active changes and we're no longer tracking to that on mobile because of scheduler.  --Kris
+            AlarmActive += C_AlarmActive;
+            BirdieLib.RetweetsUpdate += C_StatsUpdated;
+        }
+
+        public void InvokeAlarmActive(AlarmActiveEventArgs args)
+        {
+            AlarmActive?.Invoke(this, args);
         }
 
         private void UpdateButton(bool active)
@@ -99,12 +110,17 @@ namespace BirdieMobileApp
             UpdateButton(e.Active);
         }
 
-        private void StartButton_Pressed(object sender, EventArgs e)
+        public void C_AlarmActive(object sender, AlarmActiveEventArgs e)
+        {
+            UpdateButton(!e.IsScheduled);
+        }
+
+        private void StartButton_Pressed(object sender, System.EventArgs e)
         {
             PressedStart = DateTime.Now;
         }
 
-        private void StartButton_Released(object sender, EventArgs e)
+        private void StartButton_Released(object sender, System.EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessToken)
                 || string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessTokenSecret)
@@ -115,21 +131,25 @@ namespace BirdieMobileApp
                 BirdieLib.TwitterConfig.Save();
 
                 Navigation.PushAsync(new TwitterAuth(BirdieLib));
-
-                BirdieLib.RetweetsUpdate += C_StatsUpdated;
             }
             else
             {
+                // Fire event that tells Android/iOS apps that the start/stop button was pressed.  --Kris
+                ButtonClickedEventArgs args = new ButtonClickedEventArgs
+                {
+                    ClickedAt = DateTime.Now
+                };
+                ButtonClicked?.Invoke(this, args);
+                /*
                 if (BirdieLib.Active)
                 {
                     BirdieLib.Stop();
-                    BirdieLib.RetweetsUpdate -= C_StatsUpdated;
                 }
                 else
                 {
                     BirdieLib.Start();
-                    BirdieLib.RetweetsUpdate += C_StatsUpdated;
                 }
+                */
             }
         }
     }
