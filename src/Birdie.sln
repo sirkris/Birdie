@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdieMobileApp.Android", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdieMobileApp.iOS", "BirdieMobileApp\BirdieMobileApp.iOS\BirdieMobileApp.iOS.csproj", "{F690AA0D-CCE0-4EF8-A8E3-53221C9C0403}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BirdieMobileApp", "BirdieMobileApp\BirdieMobileApp\BirdieMobileApp.csproj", "{C6E04333-0DB9-406A-8549-3AF0B72FA542}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BirdieMobileApp", "BirdieMobileApp\BirdieMobileApp\BirdieMobileApp.csproj", "{C6E04333-0DB9-406A-8549-3AF0B72FA542}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

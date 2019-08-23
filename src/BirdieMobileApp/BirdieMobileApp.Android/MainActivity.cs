@@ -16,7 +16,6 @@ namespace BirdieMobileApp.Droid
     [Activity(Label = "BirdieMobileApp", Icon = "@mipmap/icon", Theme = "@style/MainTheme", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
-        public BirdieLib.BirdieLib BirdieLib { get; private set; }
         public Intent AlarmIntent { get; private set; }
         public MainPage MainPage { get; private set; }
 
@@ -32,9 +31,7 @@ namespace BirdieMobileApp.Droid
 
             AlarmIntent = new Intent(this, typeof(RepeatingAlarm));
 
-            BirdieLib = new BirdieLib.BirdieLib(scriptMode: true);
-
-            MainPage = new MainPage(BirdieLib);
+            MainPage = new MainPage(Shared.BirdieLib);
             MainPage.ButtonClicked += C_ButtonClicked;
             
             LoadApplication(new App(MainPage));
@@ -49,7 +46,7 @@ namespace BirdieMobileApp.Droid
             {
                 IsScheduled = IsScheduled()
             };
-
+            
             PendingIntent pendingIntent = PendingIntent.GetBroadcast(this, 0, AlarmIntent, PendingIntentFlags.UpdateCurrent);
             AlarmManager alarmManager = (AlarmManager)Android.App.Application.Context.GetSystemService(AlarmService);
 

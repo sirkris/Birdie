@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BirdieMobileApp.EventArgs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,16 +15,16 @@ namespace BirdieMobileApp
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class TwitterAuth : ContentPage
     {
-        private BirdieLib.BirdieLib BirdieLib;
         private string PageSrc;
+        private MainPage MainPage;
 
-        public TwitterAuth(BirdieLib.BirdieLib birdieLib)
+        public TwitterAuth(MainPage mainPage)
         {
             InitializeComponent();
 
-            BirdieLib = birdieLib;
+            MainPage = mainPage;
 
-            BrowserWindow.Source = BirdieLib.SetCredentials().AuthorizationURL;
+            BrowserWindow.Source = Shared.BirdieLib.SetCredentials().AuthorizationURL;
             BrowserWindow.Navigating += C_NavigatingUpdated;
         }
 
@@ -44,16 +45,15 @@ namespace BirdieMobileApp
                     Application.Current.Quit();
                 }
 
-                if (!string.IsNullOrWhiteSpace(BirdieLib.ActivatePIN(pin).AccessToken))
+                if (!string.IsNullOrWhiteSpace(Shared.BirdieLib.ActivatePIN(pin).AccessToken))
                 {
-                    // TODO - Configure to run in background and on startup.  --Kris
-
                     await DisplayAlert("Twitter Authentication Complete",
                         "Setup complete!  You don't have to do anything else.  Birdie will now run automatically in the background.  Thank you for volunteering!",
                         "OK");
 
                     // Close this window, start Birdie, and return to main window.  --Kris
-                    BirdieLib.Start();
+                    MainPage.InvokeButtonClicked(new ButtonClickedEventArgs { ClickedAt = DateTime.Now });
+                    
                     await Navigation.PopAsync();
                 }
                 else
@@ -71,8 +71,6 @@ namespace BirdieMobileApp
 
         protected override bool OnBackButtonPressed()
         {
-            Navigation.PopAsync();
-            Application.Current.Quit();
             return true;
         }
     }

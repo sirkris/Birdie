@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="RestSharp" Version="106.6.10" />
-    <PackageReference Include="TweetinviAPI" Version="4.0.1" />
+    <PackageReference Include="TweetInviAPI" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>

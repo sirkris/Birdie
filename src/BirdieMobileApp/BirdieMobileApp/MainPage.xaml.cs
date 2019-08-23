@@ -13,7 +13,6 @@ namespace BirdieMobileApp
 {
     public partial class MainPage : ContentPage
     {
-        private BirdieLib.BirdieLib BirdieLib;
         private DateTime? PressedStart;
 
         public event EventHandler<ButtonClickedEventArgs> ButtonClicked;
@@ -23,27 +22,32 @@ namespace BirdieMobileApp
         {
             InitializeComponent();
 
-            BirdieLib = birdieLib;
-
-            labelVersion.Text = "Version " + BirdieLib.GetVersion();
+            Shared.BirdieLib = birdieLib;
+            
+            labelVersion.Text = "Version " + Shared.BirdieLib.GetVersion();
 
             RefreshRetweets();
             RefreshLastRetweet();
             RefreshRank();
 
-            if (string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessTokenSecret))
+            if (string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessTokenSecret))
             {
-                Navigation.PushAsync(new TwitterAuth(BirdieLib));
+                Navigation.PushAsync(new TwitterAuth(this));
             }
 
             //BirdieLib.StatusUpdate += C_ActiveUpdated;  // Deprecated; fires when BirdieLib.Active changes and we're no longer tracking to that on mobile because of scheduler.  --Kris
             AlarmActive += C_AlarmActive;
-            BirdieLib.RetweetsUpdate += C_StatsUpdated;
+            Shared.BirdieLib.RetweetsUpdate += C_StatsUpdated;
         }
 
         public void InvokeAlarmActive(AlarmActiveEventArgs args)
         {
             AlarmActive?.Invoke(this, args);
+        }
+
+        public void InvokeButtonClicked(ButtonClickedEventArgs args)
+        {
+            ButtonClicked?.Invoke(this, args);
         }
 
         private void UpdateButton(bool active)
@@ -66,11 +70,11 @@ namespace BirdieMobileApp
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                otherStats.Text = "My Retweets: " + BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString()
+                otherStats.Text = "My Retweets: " + Shared.BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString()
                                  + Environment.NewLine
-                                 + "Total Retweets: " + BirdieLib.ClientStats.TotalRetweets.ToString()
+                                 + "Total Retweets: " + Shared.BirdieLib.ClientStats.TotalRetweets.ToString()
                                  + Environment.NewLine
-                                 + "Active Users: " + BirdieLib.ClientStats.ActiveUsers.ToString() + " / " + BirdieLib.ClientStats.TotalUsers.ToString();
+                                 + "Active Users: " + Shared.BirdieLib.ClientStats.ActiveUsers.ToString() + " / " + Shared.BirdieLib.ClientStats.TotalUsers.ToString();
             });
         }
 
@@ -78,7 +82,8 @@ namespace BirdieMobileApp
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                lastRetweet.Text = "Last Retweet: " + (BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue ? BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("g") : "N/A");
+                lastRetweet.Text = "Last Retweet: " + (Shared.BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.HasValue 
+                                                        ? Shared.BirdieLib.Targets["Bernie Sanders"].Stats.LastRetweet.Value.ToString("g") : "N/A");
             });
         }
 
@@ -86,7 +91,7 @@ namespace BirdieMobileApp
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                myRank.Text = "Current Rank: " + BirdieLib.GetRank("Bernie Sanders");
+                myRank.Text = "Current Rank: " + Shared.BirdieLib.GetRank("Bernie Sanders");
             });
         }
 
@@ -122,15 +127,15 @@ namespace BirdieMobileApp
 
         private void StartButton_Released(object sender, System.EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessToken)
-                || string.IsNullOrWhiteSpace(BirdieLib.TwitterConfig.AccessTokenSecret)
-                || (!BirdieLib.Active && PressedStart.HasValue && PressedStart.Value.AddSeconds(10) <= DateTime.Now))
+            if (string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessToken)
+                || string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessTokenSecret)
+                || (!Shared.BirdieLib.Active && PressedStart.HasValue && PressedStart.Value.AddSeconds(10) <= DateTime.Now))
             {
                 // Hold the Start button for 10 seconds to clear Twitter credentials and return to auth screen.  --Kris
-                BirdieLib.TwitterConfig.Clear();
-                BirdieLib.TwitterConfig.Save();
+                Shared.BirdieLib.TwitterConfig.Clear();
+                Shared.BirdieLib.TwitterConfig.Save();
 
-                Navigation.PushAsync(new TwitterAuth(BirdieLib));
+                Navigation.PushAsync(new TwitterAuth(this));
             }
             else
             {

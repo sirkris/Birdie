@@ -16,7 +16,7 @@ namespace BirdieLib
     {
         private DateTime? LastCheck;
         private Thread ControlThread;
-        private Dictionary<string, IEnumerable<ITweet>> Tweets;
+        public Dictionary<string, IEnumerable<ITweet>> Tweets;
 
         public TwitterCredentials TwitterCredentials;
         public IAuthenticationContext AuthenticationContext;
@@ -35,7 +35,7 @@ namespace BirdieLib
         public TwitterConfig TwitterConfig;
 
         private readonly Dictionary<string, string> TwitterUserFullnames;
-        private Dictionary<string, TwitterUser> TwitterUsers;
+        public Dictionary<string, TwitterUser> TwitterUsers;
 
         // In test mode, everything functions normally except no retweets are actually sent out.  --Kris
         private readonly bool TestMode;
@@ -250,7 +250,7 @@ namespace BirdieLib
             // Every hour, check followed Twitter accounts for new tweets and retweet.  Limit 10 retweets per hour to avoid spam.  --Kris
             while (Active)
             {
-                if (!LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
+                if (ScriptMode || !LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
                 {
                     int i = 0;
                     LoadTimelines();
@@ -299,7 +299,9 @@ namespace BirdieLib
                                 RetweetsUpdate?.Invoke(this, args);
 
                                 i++;
-                                if (i >= 10)
+                                if (i >= 10
+                                    || !Active
+                                    || (i >= 3 && ScriptMode))
                                 {
                                     break;
                                 }
