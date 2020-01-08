@@ -43,7 +43,7 @@
            VerticalOptions="Center" />
         <Button x:Name="StartButton" 
                 Text="Start" BackgroundColor="DarkGreen"  TextColor="LawnGreen"  FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="EndAndExpand" 
-                Pressed="StartButton_Pressed" Released="StartButton_Released"/>
+                Pressed="StartButton_Pressed" Released="StartButton_Released" />
         <Label Text="#FeelTheBern" 
            FontSize="Micro"
            TextColor="OrangeRed"
