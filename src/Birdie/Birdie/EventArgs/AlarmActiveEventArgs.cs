@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Birdie.EventArgs
+﻿namespace Birdie.EventArgs
 {
     public class AlarmActiveEventArgs
     {

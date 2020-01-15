@@ -1,12 +1,7 @@
 ﻿using Birdie.EventArgs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Tweetinvi;
-using Tweetinvi.Models;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 

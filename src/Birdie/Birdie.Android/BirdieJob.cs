@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Android.App;
 using Android.App.Job;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 
 namespace Birdie.Droid
 {
@@ -33,7 +24,7 @@ namespace Birdie.Droid
                 System.Threading.Thread.Sleep(10000);
 
                 // Have to tell the JobScheduler the work is done. 
-                JobFinished(jobParams, false);  // TODO - Should this be true?  Docs say yes but false seems to work fine.  --Kris
+                JobFinished(jobParams, true);
             });
 
             // Return true because of the asynchronous work
