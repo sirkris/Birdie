@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BirdieLib", "BirdieLib\Bird
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Birdie.ConsoleApp", "Birdie.Console\Birdie.ConsoleApp.csproj", "{67EC7A02-53EB-493D-9192-CA31B27F7760}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Birdie.AndroidMonitor", "Birdie.AndroidMonitor\Birdie.AndroidMonitor.csproj", "{93666372-A6FB-495B-A30D-E52C03811433}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,24 +101,6 @@ Global
 		{67EC7A02-53EB-493D-9192-CA31B27F7760}.Release|iPhone.Build.0 = Release|Any CPU
 		{67EC7A02-53EB-493D-9192-CA31B27F7760}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{67EC7A02-53EB-493D-9192-CA31B27F7760}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhone.Deploy.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Debug|iPhoneSimulator.Deploy.0 = Debug|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|Any CPU.Build.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhone.Build.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhone.Deploy.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{93666372-A6FB-495B-A30D-E52C03811433}.Release|iPhoneSimulator.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

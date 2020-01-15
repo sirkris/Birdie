@@ -3,10 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <Version>1.0.0+develop</Version>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
-    <PackageReleaseNotes />
+    <Version>1.0.0+beta</Version>
+    <AssemblyVersion>1.0.0.2</AssemblyVersion>
+    <FileVersion>1.0.0.2</FileVersion>
+    <PackageReleaseNotes>This is a beta testing release.  The app may behave unpredictably.  Please report any bugs.</PackageReleaseNotes>
     <Authors>Kris Craig</Authors>
     <Company />
     <Copyright>Copyright (C) 2020 by Kris Craig</Copyright>
@@ -49,11 +49,11 @@ https://github.com/sirkris/Birdie</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\..\Downloads\Birdie\Resources\drawable-hdpi\birdie.png">
+    <None Include="..\Birdie.Android\Resources\drawable-hdpi\birdie.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="..\..\LICENSE">
+    <None Include="..\..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
