@@ -1,8 +1,11 @@
 ﻿using BirdieLib.EventArgs;
+using BirdieLib.Structures;
 using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Tweetinvi;
 using Tweetinvi.Models;
@@ -13,12 +16,16 @@ namespace BirdieLib
     {
         private DateTime? LastCheck;
         private Thread ControlThread;
-        private Dictionary<string, IEnumerable<ITweet>> Tweets;
+        public Dictionary<string, IEnumerable<ITweet>> Tweets;
 
-        private TwitterCredentials TwitterCredentials;
-        private IAuthenticationContext AuthenticationContext;
+        public TwitterCredentials TwitterCredentials;
+        public IAuthenticationContext AuthenticationContext;
+
+        private Request Request { get; set; }
+        public ClientStats ClientStats { get; private set; }
 
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
+        public event EventHandler<StatusUpdateEventArgs> StatusUpdate;
 
         public Dictionary<string, Target> Targets;
 
@@ -28,22 +35,67 @@ namespace BirdieLib
         public TwitterConfig TwitterConfig;
 
         private readonly Dictionary<string, string> TwitterUserFullnames;
-        private Dictionary<string, TwitterUser> TwitterUsers;
+        public Dictionary<string, TwitterUser> TwitterUsers;
 
         // In test mode, everything functions normally except no retweets are actually sent out.  --Kris
         private readonly bool TestMode;
 
-        public bool Active { get; private set; }
+        // In script mode, the control loop runs once, then termination exits.  --Kris
+        public bool ScriptMode { get; set; }
 
-        public BirdieLib(bool testMode = false)
+        public BirdieStatus BirdieStatus
         {
-            Active = false;
+            get
+            {
+                if (birdieStatus == null)
+                {
+                    birdieStatus = new BirdieStatus(true);
+                }
+
+                return birdieStatus;
+            }
+            set
+            {
+                birdieStatus = value;
+            }
+        }
+        private BirdieStatus birdieStatus;
+
+        public bool Active
+        {
+            get
+            {
+                return BirdieStatus.Active;
+            }
+            private set
+            {
+                BirdieStatus.Active = value;
+                BirdieStatus.ActiveSince = (value ? (!BirdieStatus.ActiveSince.HasValue ? (DateTime?)DateTime.Now : BirdieStatus.ActiveSince) : null);
+                BirdieStatus.LastActive = DateTime.Now;
+
+                BirdieStatus.Save();
+
+                // Fire an event indicating that the Active status has changed.  --Kris
+                StatusUpdateEventArgs args = new StatusUpdateEventArgs
+                {
+                    Active = BirdieStatus.Active
+                };
+                StatusUpdate?.Invoke(this, args);
+            }
+        }
+
+        public BirdieLib(bool testMode = false, bool scriptMode = false, bool autoStart = false)
+        {
+            Active = BirdieStatus.Active;
 
             TwitterUsers = new Dictionary<string, TwitterUser>();
             TestMode = testMode;
+            ScriptMode = scriptMode;
+
+            Request = new Request();
 
             // Load config, stats, and retweet history.  --Kris
-            string targetsPath = Path.Combine(Environment.CurrentDirectory, "targets.json");
+            string targetsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "targets.json");
             if (File.Exists(targetsPath))
             {
                 try
@@ -53,7 +105,7 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            string retweetHistoryPath = Path.Combine(Environment.CurrentDirectory, "retweetHistory.json");
+            string retweetHistoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "retweetHistory.json");
             if (File.Exists(retweetHistoryPath))
             {
                 try
@@ -63,14 +115,17 @@ namespace BirdieLib
                 catch (Exception) { }
             }
 
-            TwitterConfig = new TwitterConfig(null);
-            LoadTwitterCredentials();
+            TwitterConfig = new TwitterConfig(true);
+            if (!string.IsNullOrWhiteSpace(TwitterConfig.AccessToken) && !string.IsNullOrWhiteSpace(TwitterConfig.AccessTokenSecret))
+            {
+                LoadTwitterCredentials();
+            }
 
             TweetinviConfig.CurrentThreadSettings.TweetMode = TweetMode.Extended;
             TweetinviConfig.CurrentThreadSettings.InitialiseFrom(TweetinviConfig.ApplicationSettings);
 
             // Only Bernie's tweets are monitored by default.  --Kris
-            if (Targets == null)
+            if (Targets == null || Targets.Count == 0)
             {
                 Targets = new Dictionary<string, Target>
                 {
@@ -127,9 +182,46 @@ namespace BirdieLib
                 { "TulsiGabbard", "Tulsi Gabbard" },
                 { "DrJillStein", "Jill Stein" }
             };
+
+            GetStats();
+
+            if (autoStart)
+            {
+                Start();
+            }
         }
 
-        private void LoadTwitterCredentials()
+        private void GetStats(bool update = false)
+        {
+            try
+            {
+                ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets", (update ? Method.POST : Method.GET))));
+            }
+            catch (Exception)
+            {
+                // If the Birdie API is unavailable for whatever reason, just grab the individual stats from the local file store and ignore the rest.  --Kris
+                ClientStats = new ClientStats
+                {
+                    MyLastRetweet = Targets["Bernie Sanders"].Stats.LastRetweet,
+                    MyTotalRetweets = Targets["Bernie Sanders"].Stats.Retweets
+                };
+            }
+        }
+
+        public void SetTwitterTokens(string accessToken, string accessTokenSecret, bool autoLoad = true)
+        {
+            TwitterConfig.AccessToken = accessToken;
+            TwitterConfig.AccessTokenSecret = accessTokenSecret;
+
+            TwitterConfig.Save();
+
+            if (autoLoad)
+            {
+                LoadTwitterCredentials();
+            }
+        }
+
+        public void LoadTwitterCredentials()
         {
             TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret, TwitterConfig.AccessToken, TwitterConfig.AccessTokenSecret);
             AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
@@ -137,9 +229,27 @@ namespace BirdieLib
             Auth.SetCredentials(TwitterCredentials);
         }
 
+        public IAuthenticationContext SetCredentials()
+        {
+            TwitterCredentials = new TwitterCredentials(TwitterConfig.ConsumerKey, TwitterConfig.ConsumerSecret);
+            AuthenticationContext = AuthFlow.InitAuthentication(TwitterCredentials);
+
+            return AuthenticationContext;
+        }
+
+        public TwitterCredentials ActivatePIN(string pin)
+        {
+            TwitterCredentials = (TwitterCredentials)AuthFlow.CreateCredentialsFromVerifierCode(pin, AuthenticationContext);
+            Auth.SetCredentials(TwitterCredentials);
+
+            SetTwitterTokens(TwitterCredentials.AccessToken, TwitterCredentials.AccessTokenSecret, false);
+
+            return TwitterCredentials;
+        }
+
         public void Start()
         {
-            if (!Active)
+            if (!Active || ScriptMode)
             {
                 Active = true;
 
@@ -155,10 +265,10 @@ namespace BirdieLib
         {
             if (Active)
             {
-                Active = false;
-
                 KillThread();
             }
+
+            Active = false;
         }
 
         public void KillThread(int timeout = 60)
@@ -178,7 +288,7 @@ namespace BirdieLib
             // Every hour, check followed Twitter accounts for new tweets and retweet.  Limit 10 retweets per hour to avoid spam.  --Kris
             while (Active)
             {
-                if (!LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
+                if (ScriptMode || !LastCheck.HasValue || LastCheck.Value.AddHours(1) < DateTime.Now)
                 {
                     int i = 0;
                     LoadTimelines();
@@ -186,7 +296,7 @@ namespace BirdieLib
                     {
                         foreach (ITweet tweet in pair.Value)
                         {
-                            if (!RetweetHistory.ContainsKey(tweet.Url) 
+                            if (!RetweetHistory.ContainsKey(tweet.Url)
                                 && tweet.CreatedAt.AddDays(1) > DateTime.Now)
                             {
                                 string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
@@ -210,6 +320,9 @@ namespace BirdieLib
 
                                 SaveTargets();
 
+                                // Update the Birdie API and retrieve new totals.  --Kris
+                                GetStats(true);
+
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
                                 {
@@ -224,17 +337,26 @@ namespace BirdieLib
                                 RetweetsUpdate?.Invoke(this, args);
 
                                 i++;
-                                if (i >= 10)
+                                if (i >= 10
+                                    || !Active
+                                    || (i >= 3 && ScriptMode))
                                 {
                                     break;
                                 }
 
-                                // Wait a minute between each tweet.  --Kris
-                                Wait(60000);
+                                // Wait a minute between each tweet (or a second in script mode).  --Kris
+                                Wait((ScriptMode ? 1000 : 60000));
+
+                                if (!Active)
+                                {
+                                    break;
+                                }
                             }
                         }
 
-                        if (i >= 10)
+                        if (i >= 10
+                            || !Active
+                            || (i >= 3 && ScriptMode))
                         {
                             break;
                         }
@@ -243,18 +365,31 @@ namespace BirdieLib
                     LastCheck = DateTime.Now;
                 }
 
+                if (ScriptMode)
+                {
+                    //Active = false;
+                    return;
+                }
+
                 Wait(60000);
             }
         }
 
+        public string GetVersion()
+        {
+            string res = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            return (string.IsNullOrWhiteSpace(res) || !res.Contains(".") ? res : res.Substring(0, res.LastIndexOf(".")) +
+                (res.EndsWith(".1") ? "+develop" : res.EndsWith(".2") ? "+beta" : ""));
+        }
+
         private void SaveTargets()
         {
-            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "targets.json"), JsonConvert.SerializeObject(Targets));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "targets.json"), JsonConvert.SerializeObject(Targets));
         }
 
         private void SaveRetweetHistory()
         {
-            File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "retweetHistory.json"), JsonConvert.SerializeObject(RetweetHistory));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "retweetHistory.json"), JsonConvert.SerializeObject(RetweetHistory));
         }
 
         public string GetRank(string targetFullname)
@@ -285,24 +420,43 @@ namespace BirdieLib
             {
                 if (pair.Value.Enabled)
                 {
-                    foreach (string userName in pair.Value.TwitterUsers)
+                    int retry = 3;
+                    bool success;
+                    do
                     {
-                        if (!TwitterUsers.ContainsKey(userName))
+                        success = true;
+                        try
                         {
-                            TwitterUsers.Add(userName, new TwitterUser(userName));
-                        }
-                        TwitterUser user = TwitterUsers[userName];
-
-                        if (user.Enabled)
-                        {
-                            if (user.IUser == null)
+                            foreach (string userName in pair.Value.TwitterUsers)
                             {
-                                user.IUser = User.GetUserFromScreenName(user.Username);
-                            }
+                                if (!TwitterUsers.ContainsKey(userName))
+                                {
+                                    TwitterUsers.Add(userName, new TwitterUser(userName));
+                                }
+                                TwitterUser user = TwitterUsers[userName];
 
-                            Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                                if (user.Enabled)
+                                {
+                                    if (user.IUser == null)
+                                    {
+                                        user.IUser = User.GetUserFromScreenName(user.Username);
+                                    }
+
+                                    Tweets.Add(user.IUser.ScreenName, user.IUser.GetUserTimeline());
+                                }
+                            }
                         }
-                    }
+                        catch (Exception)
+                        {
+                            success = false;
+                            retry--;
+
+                            if (retry > 0)
+                            {
+                                Wait(3000);
+                            }
+                        }
+                    } while (!success && retry > 0);
                 }
             }
         }
