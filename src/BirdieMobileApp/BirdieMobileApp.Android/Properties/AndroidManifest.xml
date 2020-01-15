@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.companyname.BirdieMobileApp" android:installLocation="internalOnly" android:versionCode="1" android:versionName="1.0.0-develop">
-	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-	<uses-permission android:name="android.permission.WAKE_LOCK" />
-	<application android:label="Birdie" android:icon="@mipmap/icon"></application>
-</manifest>

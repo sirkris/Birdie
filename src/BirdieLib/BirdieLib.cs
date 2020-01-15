@@ -43,29 +43,50 @@ namespace BirdieLib
         // In script mode, the control loop runs once, then termination exits.  --Kris
         public bool ScriptMode { get; set; }
 
+        public BirdieStatus BirdieStatus
+        {
+            get
+            {
+                if (birdieStatus == null)
+                {
+                    birdieStatus = new BirdieStatus(true);
+                }
+
+                return birdieStatus;
+            }
+            set
+            {
+                birdieStatus = value;
+            }
+        }
+        private BirdieStatus birdieStatus;
+
         public bool Active
         {
             get
             {
-                return active;
+                return BirdieStatus.Active;
             }
             private set
             {
-                active = value;
+                BirdieStatus.Active = value;
+                BirdieStatus.ActiveSince = (value ? (!BirdieStatus.ActiveSince.HasValue ? (DateTime?)DateTime.Now : BirdieStatus.ActiveSince) : null);
+                BirdieStatus.LastActive = DateTime.Now;
+
+                BirdieStatus.Save();
 
                 // Fire an event indicating that the Active status has changed.  --Kris
                 StatusUpdateEventArgs args = new StatusUpdateEventArgs
                 {
-                    Active = active
+                    Active = BirdieStatus.Active
                 };
                 StatusUpdate?.Invoke(this, args);
             }
         }
-        private bool active;
 
         public BirdieLib(bool testMode = false, bool scriptMode = false, bool autoStart = false)
         {
-            Active = false;
+            Active = BirdieStatus.Active;
 
             TwitterUsers = new Dictionary<string, TwitterUser>();
             TestMode = testMode;
@@ -162,11 +183,28 @@ namespace BirdieLib
                 { "DrJillStein", "Jill Stein" }
             };
 
-            ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets")));
+            GetStats();
 
             if (autoStart)
             {
                 Start();
+            }
+        }
+
+        private void GetStats(bool update = false)
+        {
+            try
+            {
+                ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets", (update ? Method.POST : Method.GET))));
+            }
+            catch (Exception)
+            {
+                // If the Birdie API is unavailable for whatever reason, just grab the individual stats from the local file store and ignore the rest.  --Kris
+                ClientStats = new ClientStats
+                {
+                    MyLastRetweet = Targets["Bernie Sanders"].Stats.LastRetweet,
+                    MyTotalRetweets = Targets["Bernie Sanders"].Stats.Retweets
+                };
             }
         }
 
@@ -211,7 +249,7 @@ namespace BirdieLib
 
         public void Start()
         {
-            if (!Active)
+            if (!Active || ScriptMode)
             {
                 Active = true;
 
@@ -227,10 +265,10 @@ namespace BirdieLib
         {
             if (Active)
             {
-                Active = false;
-
                 KillThread();
             }
+
+            Active = false;
         }
 
         public void KillThread(int timeout = 60)
@@ -258,7 +296,7 @@ namespace BirdieLib
                     {
                         foreach (ITweet tweet in pair.Value)
                         {
-                            if (!RetweetHistory.ContainsKey(tweet.Url) 
+                            if (!RetweetHistory.ContainsKey(tweet.Url)
                                 && tweet.CreatedAt.AddDays(1) > DateTime.Now)
                             {
                                 string oldRank = GetRank(TwitterUserFullnames[pair.Key]);
@@ -283,7 +321,7 @@ namespace BirdieLib
                                 SaveTargets();
 
                                 // Update the Birdie API and retrieve new totals.  --Kris
-                                ClientStats = JsonConvert.DeserializeObject<ClientStats>(Request.ExecuteRequest(Request.Prepare("/birdieApp/retweets", Method.POST)));
+                                GetStats(true);
 
                                 // Fire event to be consumed at the app-level.  --Kris
                                 RetweetEventArgs args = new RetweetEventArgs
@@ -316,9 +354,9 @@ namespace BirdieLib
                             }
                         }
 
-                        if (i >= 10 
-                            || !Active 
-                            || (i >=3 && ScriptMode))
+                        if (i >= 10
+                            || !Active
+                            || (i >= 3 && ScriptMode))
                         {
                             break;
                         }
@@ -329,7 +367,7 @@ namespace BirdieLib
 
                 if (ScriptMode)
                 {
-                    Active = false;
+                    //Active = false;
                     return;
                 }
 
@@ -341,7 +379,7 @@ namespace BirdieLib
         {
             string res = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             return (string.IsNullOrWhiteSpace(res) || !res.Contains(".") ? res : res.Substring(0, res.LastIndexOf(".")) +
-                (res.EndsWith(".1") ? "-develop" : res.EndsWith(".2") ? "-beta" : ""));
+                (res.EndsWith(".1") ? "+develop" : res.EndsWith(".2") ? "+beta" : ""));
         }
 
         private void SaveTargets()

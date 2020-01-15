@@ -20,6 +20,14 @@ namespace BirdieLib
         public string AccessTokenSecret { get; set; }
 
         private readonly string ConfigJSON;
+        private string ConfigFilename
+        {
+            get
+            {
+                return "TwitterConfig.json";
+            }
+            set { }
+        }
 
         private const string DEFAULT_CONSUMER_KEY = "VMWUlZGK9hgnk4iBqELUc7So5";
         private const string DEFAULT_CONSUMER_SECRET = "X5gFdMwwDmWB7Dq5FbSVtYETLx5R2GjHYM92x67bRexAFQS3BJ";
@@ -28,12 +36,12 @@ namespace BirdieLib
         {
             if (autoLoad)
             {
-                string twitterConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TwitterConfig.json");
+                string twitterConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ConfigFilename);
                 if (!File.Exists(twitterConfigPath))
                 {
                     try
                     {
-                        File.Copy(Path.Combine(Environment.CurrentDirectory, "TwitterConfig.json"), twitterConfigPath);
+                        File.Copy(Path.Combine(Environment.CurrentDirectory, ConfigFilename), twitterConfigPath);
                     }
                     catch (Exception)
                     {
@@ -82,7 +90,7 @@ namespace BirdieLib
 
         public void Save()
         {
-            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TwitterConfig.json"), JsonConvert.SerializeObject(this));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ConfigFilename), JsonConvert.SerializeObject(this));
         }
     }
 }

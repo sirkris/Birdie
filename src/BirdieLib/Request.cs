@@ -97,7 +97,7 @@ namespace BirdieLib
             return JsonConvert.DeserializeObject<T>(ExecuteRequest(restRequest));
         }
 
-        public void AddParamIfNotNull(string name, dynamic value, ref RestRequest restRequest)
+        public void AddParamIfNotNull(string name, object value, ref RestRequest restRequest)
         {
             if (value != null)
             {

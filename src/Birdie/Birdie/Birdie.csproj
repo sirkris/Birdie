@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <Version>1.0.0+develop</Version>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <PackageReleaseNotes />
+    <Authors>Kris Craig</Authors>
+    <Company />
+    <Copyright>Copyright (C) 2020 by Kris Craig</Copyright>
+    <Description>Birdie is a simple grassroots volunteer mobile app that monitors Bernie Sanders' Twitter feeds and automatically retweets everything.  Once installed and linked to your Twitter account, Birdie runs quietly in the background and will continue retweeting Bernie's tweets (even if you reboot your phone) until you tell it to stop.
+
+As of the time this description was written, Bernie Sanders was averaging around 1,000 retweets per tweet.  So if even just a thousand people were to install this app on their phones (and do nothing else), it would effectively double Bernie's Twitter reach.
+
+Birdie only takes a few minutes to install and setup.  It is 100% free (no in-app purchases) and contains no ads of any kind.  Furthermore, this app is open source and can be found on Github at:
+
+https://github.com/sirkris/Birdie</Description>
+    <PackageProjectUrl>https://github.com/sirkris/Birdie</PackageProjectUrl>
+    <PackageIcon>birdie.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/sirkris/Birdie</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>Bernie Sanders 2020 Twitter social media activisim grassroots m4a volunteer app retweet foss</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TweetinviAPI" Version="4.0.3" />
+    <PackageReference Include="Xam.Plugins.Notifier" Version="3.0.1" />
+    <PackageReference Include="Xamarin.Forms" Version="4.4.0.991265" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BirdieLib\BirdieLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="TwitterAuth.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Downloads\Birdie\Resources\drawable-hdpi\birdie.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
