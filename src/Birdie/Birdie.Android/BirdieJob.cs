@@ -24,7 +24,7 @@ namespace Birdie.Droid
                 System.Threading.Thread.Sleep(10000);
 
                 // Have to tell the JobScheduler the work is done. 
-                JobFinished(jobParams, true);
+                JobFinished(jobParams, false);
             });
 
             // Return true because of the asynchronous work

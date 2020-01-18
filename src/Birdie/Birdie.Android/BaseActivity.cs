@@ -5,6 +5,8 @@ using Android.App;
 using Android.Content;
 using Android.App.Job;
 
+using AndroidX.Work;
+
 namespace Birdie.Droid
 {
     [Activity(Label = "Birdie")]
@@ -25,8 +27,18 @@ namespace Birdie.Droid
                 // Run the BirdieLib (in script mode) once now since the scheduler won't fire for 15 minutes.  --Kris
                 //Shared.BirdieLib.Start();
 
+                /*
+                 * TODO
+                 * 
+                 * This stops working after a set amount of time.  Passing true to JobFinished didn't solve the issue (should be false anyway).
+                 * May be caused by additional OS restrictions relating to SetPeriodic.  Will try replacing the JobScheduler with a 
+                 * WorkManager and see if those internal optimizations do the trick.  Otherwise, I'll have to implement some sort of hybrid 
+                 * approach with jobs and alarms spawing each other, assuming I can even do that.  Fucking Android.
+                 * 
+                 * --Kris
+                 */
                 // Set a recurring JobScheduler to take it from here.  --Kris
-                JobInfo.Builder builder = new JobInfo.Builder(JOB_ID, new ComponentName(this, Java.Lang.Class.FromType(typeof(BirdieJob))));
+                /*JobInfo.Builder builder = new JobInfo.Builder(JOB_ID, new ComponentName(this, Java.Lang.Class.FromType(typeof(BirdieJob))));
 
                 builder.SetPeriodic(900000);  // Fire every ~15 minutes.
                 builder.SetPersisted(true);  // Persist across reboots.
@@ -41,7 +53,11 @@ namespace Birdie.Droid
                 if (!jobScheduler.Schedule(jobInfo).Equals(JobScheduler.ResultSuccess))
                 {
                     throw new Exception("Failed to start JobScheduler!");
-                }
+                }*/
+
+                // Start the WorkManager.  --Kris
+                PeriodicWorkRequest periodicWorkRequest = PeriodicWorkRequest.Builder.From<BirdieWorker>(TimeSpan.FromMinutes(20)).Build();
+                WorkManager.Instance.Enqueue(periodicWorkRequest);
 
                 args = new AlarmActiveEventArgs
                 {
@@ -51,12 +67,15 @@ namespace Birdie.Droid
             else
             {
                 // Cancel the job.  --Kris
-                if (jobScheduler != null)
+                /*if (jobScheduler != null)
                 {
                     jobScheduler.Cancel(JOB_ID);
                 }
 
-                Shared.BirdieLib.Stop();
+                Shared.BirdieLib.Stop();*/
+
+                // Stop the WorkManager.  --Kris
+                WorkManager.Instance.CancelAllWork();
 
                 args = new AlarmActiveEventArgs
                 {
