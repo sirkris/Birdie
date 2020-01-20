@@ -86,13 +86,18 @@
     <Compile Include="BirdieWorker.cs" />
     <Compile Include="BootReceiver.cs" />
     <Compile Include="BootService.cs" />
+    <Compile Include="LastRefreshes.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="RepeatingAlarm.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="AndroidRefreshes.cs" />
     <Compile Include="SplashActivity.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LastRefreshes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\AboutResources.txt" />
     <None Include="Assets\AboutAssets.txt" />
     <None Include="Properties\AndroidManifest.xml" />

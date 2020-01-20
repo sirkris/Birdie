@@ -8,5 +8,10 @@ namespace Birdie.EventArgs
         /// When the click event was registered.
         /// </summary>
         public DateTime ClickedAt { get; set; }
+
+        public ButtonClickedEventArgs()
+        {
+            ClickedAt = DateTime.Now;
+        }
     }
 }

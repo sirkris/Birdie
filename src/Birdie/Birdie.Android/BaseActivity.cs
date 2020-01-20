@@ -15,6 +15,8 @@ namespace Birdie.Droid
         public Intent AlarmIntent { get; set; }
         public MainPage MainPage { get; set; }
 
+        private PeriodicWorkRequest PeriodicWorkRequest { get; set; }
+
         private const int JOB_ID = 237643;
 
         // When the button is clicked, check if we're scheduled and fire the event.  --Kris
@@ -55,14 +57,7 @@ namespace Birdie.Droid
                     throw new Exception("Failed to start JobScheduler!");
                 }*/
 
-                // Start the WorkManager.  --Kris
-                PeriodicWorkRequest periodicWorkRequest = PeriodicWorkRequest.Builder.From<BirdieWorker>(TimeSpan.FromMinutes(20)).Build();
-                WorkManager.Instance.Enqueue(periodicWorkRequest);
-
-                args = new AlarmActiveEventArgs
-                {
-                    IsScheduled = true
-                };
+                args = StartBirdieLib();
             }
             else
             {
@@ -70,17 +65,9 @@ namespace Birdie.Droid
                 /*if (jobScheduler != null)
                 {
                     jobScheduler.Cancel(JOB_ID);
-                }
+                }*/
 
-                Shared.BirdieLib.Stop();*/
-
-                // Stop the WorkManager.  --Kris
-                WorkManager.Instance.CancelAllWork();
-
-                args = new AlarmActiveEventArgs
-                {
-                    IsScheduled = false
-                };
+                args = StopBirdieLib();
             }
 
             /*
@@ -100,6 +87,38 @@ namespace Birdie.Droid
 
             // Fire the event to update the button.  --Kris
             MainPage.InvokeAlarmActive(args);
+        }
+
+        public AlarmActiveEventArgs StartBirdieLib()
+        {
+            // Start the WorkManager.  --Kris
+            if (PeriodicWorkRequest == null)
+            {
+                PeriodicWorkRequest = PeriodicWorkRequest.Builder.From<BirdieWorker>(TimeSpan.FromMinutes(20)).Build();
+            }
+            PeriodicWorkRequest.Tags.Add("BirdieWorker");
+
+            WorkManager.Instance.Enqueue(PeriodicWorkRequest);
+            
+            return new AlarmActiveEventArgs
+            {
+                IsScheduled = true
+            };
+        }
+
+        public AlarmActiveEventArgs StopBirdieLib()
+        {
+            // Stop the WorkManager.  --Kris
+            WorkManager.Instance.CancelAllWork();
+            //PeriodicWorkRequest.Dispose();
+            PeriodicWorkRequest = null;
+
+            Shared.BirdieLib.Stop();
+
+            return new AlarmActiveEventArgs
+            {
+                IsScheduled = false
+            };
         }
 
         public bool IsScheduled()
