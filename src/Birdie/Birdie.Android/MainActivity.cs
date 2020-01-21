@@ -6,6 +6,7 @@ using Android.Runtime;
 using Android.OS;
 using Plugin.LocalNotifications;
 using Xamarin.Forms;
+using Android.Content;
 
 namespace Birdie.Droid
 {
@@ -22,7 +23,7 @@ namespace Birdie.Droid
             TabLayoutResource = Resource.Layout.Tabbar;
             ToolbarResource = Resource.Layout.Toolbar;
 
-            //AlarmIntent = new Intent(this, typeof(RepeatingAlarm));
+            AlarmIntent = new Intent(this, typeof(RepeatingAlarm));
 
             MainPage = new MainPage(Shared.BirdieLib);
             MainPage.ButtonClicked += C_ButtonClicked;

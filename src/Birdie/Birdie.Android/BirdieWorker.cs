@@ -16,6 +16,8 @@ using AndroidX.Work;
 
 namespace Birdie.Droid
 {
+    [Service(Name = "com.companyname.Birdie.Android.BirdieWorker",
+             Permission = "android.permission.BIND_JOB_SERVICE")]
     public class BirdieWorker : Worker
     {
         public Intent AlarmIntent { get; set; }

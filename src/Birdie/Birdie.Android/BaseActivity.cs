@@ -4,7 +4,7 @@ using System;
 using Android.App;
 using Android.Content;
 using Android.App.Job;
-
+using Android.OS;
 using AndroidX.Work;
 
 namespace Birdie.Droid
@@ -91,6 +91,14 @@ namespace Birdie.Droid
 
         public AlarmActiveEventArgs StartBirdieLib()
         {
+            AndroidRefreshes.Alarm = DateTime.Now;
+
+            // Set the alarm.  --Kris
+            PendingIntent pendingIntent = PendingIntent.GetBroadcast(Application.Context, 0, AlarmIntent, PendingIntentFlags.UpdateCurrent);
+            AlarmManager alarmManager = (AlarmManager)Android.App.Application.Context.GetSystemService(Context.AlarmService);
+
+            alarmManager.SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, SystemClock.ElapsedRealtime() + 5000, pendingIntent);
+
             // Start the WorkManager.  --Kris
             if (PeriodicWorkRequest == null)
             {
@@ -112,6 +120,16 @@ namespace Birdie.Droid
             WorkManager.Instance.CancelAllWork();
             //PeriodicWorkRequest.Dispose();
             PeriodicWorkRequest = null;
+
+            PendingIntent pendingIntent = PendingIntent.GetBroadcast(Application.Context, 0, AlarmIntent, PendingIntentFlags.UpdateCurrent);
+            AlarmManager alarmManager = (AlarmManager)Android.App.Application.Context.GetSystemService(Context.AlarmService);
+
+            try
+            {
+                alarmManager.Cancel(pendingIntent);
+                pendingIntent.Cancel();
+            }
+            catch (Exception) { }
 
             Shared.BirdieLib.Stop();
 
