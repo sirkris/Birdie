@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="6" android:versionName="1.0.0+beta5" package="com.companyname.Birdie" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="7" android:versionName="1.0.0+beta6" package="com.companyname.Birdie" android:installLocation="auto">
 	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28" />
-	<application android:label="Birdie">
+	<application android:label="Birdie" android:icon="@mipmap/icon">
 		<service android:name=".BirdieWorker" android:permission="android.permission.BIND_JOB_SERVICE" />
 	</application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

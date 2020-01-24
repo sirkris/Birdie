@@ -72,6 +72,11 @@ namespace Birdie.Droid
                     Shared.BirdieLib.Start();
                 }
             }
+            // Otherwise, refresh data from the Birdie API for display purposes.  --Kris
+            else
+            {
+                Shared.BirdieLib.InvokeStatsUpdate();
+            }
 
             return Result.InvokeSuccess();
         }

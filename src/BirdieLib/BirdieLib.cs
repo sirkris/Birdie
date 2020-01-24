@@ -22,7 +22,25 @@ namespace BirdieLib
         public IAuthenticationContext AuthenticationContext;
 
         private Request Request { get; set; }
-        public ClientStats ClientStats { get; private set; }
+        public ClientStats ClientStats
+        {
+            get
+            {
+                if (clientStats == null || !ClientStatsLastRefresh.HasValue || ClientStatsLastRefresh.Value.AddMinutes(1) < DateTime.Now)
+                {
+                    GetStats();
+                }
+
+                return clientStats;
+            }
+            private set
+            {
+                clientStats = value;
+                ClientStatsLastRefresh = DateTime.Now;
+            }
+        }
+        private ClientStats clientStats;
+        private DateTime? ClientStatsLastRefresh;
 
         public event EventHandler<RetweetEventArgs> RetweetsUpdate;
         public event EventHandler<StatusUpdateEventArgs> StatusUpdate;
@@ -373,6 +391,11 @@ namespace BirdieLib
 
                 Wait(60000);
             }
+        }
+
+        public void InvokeStatsUpdate()
+        {
+            RetweetsUpdate?.Invoke(this, null);
         }
 
         /// <summary>

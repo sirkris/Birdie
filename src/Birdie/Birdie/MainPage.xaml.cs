@@ -25,9 +25,7 @@ namespace Birdie
 
             labelVersion.Text = "Version " + Shared.BirdieLib.GetVersion();
 
-            RefreshRetweets();
-            RefreshLastRetweet();
-            RefreshRank();
+            RefreshStats();
 
             if (string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessTokenSecret))
             {
@@ -65,6 +63,13 @@ namespace Birdie
             }
         }
 
+        private void RefreshStats()
+        {
+            RefreshRetweets();
+            RefreshLastRetweet();
+            RefreshRank();
+        }
+
         private void RefreshRetweets()
         {
             Device.BeginInvokeOnMainThread(() =>
@@ -100,11 +105,10 @@ namespace Birdie
         public void C_StatsUpdated(object sender, RetweetEventArgs e)
         {
             // Update stats displayed and activate notification if new rank is achieved.  --Kris
-            RefreshRetweets();
-            RefreshLastRetweet();
-            RefreshRank();
+            RefreshStats();
 
-            if (!e.NewRank.Equals(e.OldRank)
+            if (e != null 
+                && !e.NewRank.Equals(e.OldRank)
                 && (e.SourceUser.Equals("BernieSanders") || e.SourceUser.Equals("SenSanders")))
             {
                 // Fire notification of new rank.  --Kris
