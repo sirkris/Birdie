@@ -1,13 +1,9 @@
-﻿using Birdie.EventArgs;
-using System;
-
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using Android.OS;
+using Birdie.EventArgs;
 using Plugin.LocalNotifications;
 using Xamarin.Forms;
 
@@ -26,7 +22,7 @@ namespace Birdie.Droid
             TabLayoutResource = Resource.Layout.Tabbar;
             ToolbarResource = Resource.Layout.Toolbar;
 
-            //AlarmIntent = new Intent(this, typeof(RepeatingAlarm));
+            AlarmIntent = new Intent(this, typeof(RepeatingAlarm));
 
             MainPage = new MainPage(Shared.BirdieLib);
             MainPage.ButtonClicked += C_ButtonClicked;
@@ -36,7 +32,7 @@ namespace Birdie.Droid
             MainPage.InvokeAlarmActive(new AlarmActiveEventArgs { IsScheduled = IsScheduled() });
         }
 
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Permission[] grantResults)
         {
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 

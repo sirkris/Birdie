@@ -5,17 +5,32 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              Title="Birdie"
-             BackgroundColor="DarkSlateBlue"
+             BackgroundColor="#00063A"
              x:Class="Birdie.MainPage">
 
     <StackLayout>
         <!-- Place new controls here -->
-        <Label Text="Birdie" 
-           FontAttributes="Bold"
-           FontSize="Large"
-           TextColor="Gold"
-           HorizontalOptions="Center"
-           VerticalOptions="Start" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" VerticalOptions="Start" HorizontalOptions="Center" RowSpacing="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0" Source="birdie.png" HorizontalOptions="End" />
+                <Label Text="Birdie" 
+                       Grid.Column="1"
+                       FontAttributes="Bold"
+                       FontSize="Large"
+                       TextColor="Gold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Start" />
+                <Image Grid.Column="2" Source="birdie.png" />
+            </Grid>
+        </Grid>
         <Label Text="Created by Kris Craig" 
            FontAttributes="Italic"
            FontSize="Micro"

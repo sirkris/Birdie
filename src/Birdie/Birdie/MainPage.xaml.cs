@@ -2,11 +2,7 @@
 using Birdie.EventArgs;
 using Plugin.LocalNotifications;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace Birdie
@@ -29,9 +25,7 @@ namespace Birdie
 
             labelVersion.Text = "Version " + Shared.BirdieLib.GetVersion();
 
-            RefreshRetweets();
-            RefreshLastRetweet();
-            RefreshRank();
+            RefreshStats();
 
             if (string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessToken) || string.IsNullOrWhiteSpace(Shared.BirdieLib.TwitterConfig.AccessTokenSecret))
             {
@@ -69,17 +63,24 @@ namespace Birdie
             }
         }
 
+        private void RefreshStats()
+        {
+            RefreshRetweets();
+            RefreshLastRetweet();
+            RefreshRank();
+        }
+
         private void RefreshRetweets()
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                otherStats.Text = "My Retweets: " + Shared.BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString()
+                otherStats.Text = "My Retweets: " + Shared.BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString("N0")
                                  + (Shared.BirdieLib.ClientStats.TotalRetweets.HasValue
-                                    ? Environment.NewLine + "Total Retweets: " + Shared.BirdieLib.ClientStats.TotalRetweets.ToString()
+                                    ? Environment.NewLine + "Total Retweets: " + Shared.BirdieLib.ClientStats.TotalRetweets.Value.ToString("N0")
                                     : "")
                                  + (Shared.BirdieLib.ClientStats.ActiveUsers.HasValue && Shared.BirdieLib.ClientStats.TotalUsers.HasValue
                                     ? Environment.NewLine
-                                        + "Active Users: " + Shared.BirdieLib.ClientStats.ActiveUsers.ToString() + " / " + Shared.BirdieLib.ClientStats.TotalUsers.ToString()
+                                        + "Active Users: " + Shared.BirdieLib.ClientStats.ActiveUsers.Value.ToString("N0") + " / " + Shared.BirdieLib.ClientStats.TotalUsers.Value.ToString("N0")
                                     : "");
             });
         }
@@ -104,11 +105,10 @@ namespace Birdie
         public void C_StatsUpdated(object sender, RetweetEventArgs e)
         {
             // Update stats displayed and activate notification if new rank is achieved.  --Kris
-            RefreshRetweets();
-            RefreshLastRetweet();
-            RefreshRank();
+            RefreshStats();
 
-            if (!e.NewRank.Equals(e.OldRank)
+            if (e != null 
+                && !e.NewRank.Equals(e.OldRank)
                 && (e.SourceUser.Equals("BernieSanders") || e.SourceUser.Equals("SenSanders")))
             {
                 // Fire notification of new rank.  --Kris

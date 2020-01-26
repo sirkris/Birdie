@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Birdie.EventArgs
 {
@@ -10,5 +8,10 @@ namespace Birdie.EventArgs
         /// When the click event was registered.
         /// </summary>
         public DateTime ClickedAt { get; set; }
+
+        public ButtonClickedEventArgs()
+        {
+            ClickedAt = DateTime.Now;
+        }
     }
 }
