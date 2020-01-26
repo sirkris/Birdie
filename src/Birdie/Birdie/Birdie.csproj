@@ -3,16 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <Version>1.0.0+beta</Version>
-    <AssemblyVersion>1.0.0.7</AssemblyVersion>
-    <FileVersion>1.0.0.7</FileVersion>
-    <PackageReleaseNotes>This is a beta testing release.  The app may behave unpredictably.  Please report any bugs.</PackageReleaseNotes>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <PackageReleaseNotes>https://www.reddit.com/r/StillSandersForPres/comments/etndbh/introducing_birdie_a_free_android_app_that_makes/</PackageReleaseNotes>
     <Authors>Kris Craig</Authors>
     <Company />
     <Copyright>Copyright (C) 2020 by Kris Craig</Copyright>
     <Description>Birdie is a simple grassroots volunteer mobile app that monitors Bernie Sanders' Twitter feeds and automatically retweets everything.  Once installed and linked to your Twitter account, Birdie runs quietly in the background and will continue retweeting Bernie's tweets (even if you reboot your phone) until you tell it to stop.
-
-As of the time this description was written, Bernie Sanders was averaging around 1,000 retweets per tweet.  So if even just a thousand people were to install this app on their phones (and do nothing else), it would effectively double Bernie's Twitter reach.
 
 Birdie only takes a few minutes to install and setup.  It is 100% free (no in-app purchases) and contains no ads of any kind.  Furthermore, this app is open source and can be found on Github at:
 
