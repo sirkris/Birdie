@@ -74,13 +74,13 @@ namespace Birdie
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                otherStats.Text = "My Retweets: " + Shared.BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString()
+                otherStats.Text = "My Retweets: " + Shared.BirdieLib.Targets["Bernie Sanders"].Stats.Retweets.ToString("N0")
                                  + (Shared.BirdieLib.ClientStats.TotalRetweets.HasValue
-                                    ? Environment.NewLine + "Total Retweets: " + Shared.BirdieLib.ClientStats.TotalRetweets.ToString()
+                                    ? Environment.NewLine + "Total Retweets: " + Shared.BirdieLib.ClientStats.TotalRetweets.Value.ToString("N0")
                                     : "")
                                  + (Shared.BirdieLib.ClientStats.ActiveUsers.HasValue && Shared.BirdieLib.ClientStats.TotalUsers.HasValue
                                     ? Environment.NewLine
-                                        + "Active Users: " + Shared.BirdieLib.ClientStats.ActiveUsers.ToString() + " / " + Shared.BirdieLib.ClientStats.TotalUsers.ToString()
+                                        + "Active Users: " + Shared.BirdieLib.ClientStats.ActiveUsers.Value.ToString("N0") + " / " + Shared.BirdieLib.ClientStats.TotalUsers.Value.ToString("N0")
                                     : "");
             });
         }
