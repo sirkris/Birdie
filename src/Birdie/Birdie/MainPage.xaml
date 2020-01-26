@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Title="Birdie"
+             BackgroundColor="#00063A"
+             x:Class="Birdie.MainPage">
+
+    <StackLayout>
+        <!-- Place new controls here -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" VerticalOptions="Start" HorizontalOptions="Center" RowSpacing="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Grid.Column="0" Source="birdie.png" HorizontalOptions="End" />
+                <Label Text="Birdie" 
+                       Grid.Column="1"
+                       FontAttributes="Bold"
+                       FontSize="Large"
+                       TextColor="Gold"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Start" />
+                <Image Grid.Column="2" Source="birdie.png" />
+            </Grid>
+        </Grid>
+        <Label Text="Created by Kris Craig" 
+           FontAttributes="Italic"
+           FontSize="Micro"
+           TextColor="Orange"
+           HorizontalOptions="Center"
+           VerticalOptions="Start" />
+        <Label x:Name="labelVersion" Text="" 
+           FontSize="Small"
+           TextColor="White"
+           HorizontalOptions="Center"
+           VerticalOptions="Start" />
+        <Label x:Name="myRank" Text="" 
+           FontSize="Medium"
+           TextColor="Lime"
+           HorizontalOptions="Center"
+           VerticalOptions="CenterAndExpand" />
+        <Label x:Name="otherStats" Text="" 
+           FontSize="Small"
+           TextColor="Aqua"
+           HorizontalOptions="Center"
+           VerticalOptions="Center" />
+        <Label x:Name="lastRetweet" Text="" 
+           FontSize="Small"
+           TextColor="Aqua"
+           HorizontalOptions="Center"
+           VerticalOptions="Center" />
+        <Button x:Name="StartButton" 
+                Text="Start" BackgroundColor="DarkGreen"  TextColor="LawnGreen"  FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="EndAndExpand" 
+                Pressed="StartButton_Pressed" Released="StartButton_Released" />
+        <Label Text="#FeelTheBern" 
+           FontSize="Micro"
+           TextColor="OrangeRed"
+           HorizontalOptions="Center"
+           VerticalOptions="Center" />
+    </StackLayout>
+
+</ContentPage>
