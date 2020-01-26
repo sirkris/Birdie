@@ -82,10 +82,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseActivity.cs" />
-    <Compile Include="BirdieJob.cs" />
     <Compile Include="BirdieWorker.cs" />
     <Compile Include="BootReceiver.cs" />
-    <Compile Include="BootService.cs" />
     <Compile Include="LastRefreshes.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="RepeatingAlarm.cs" />
