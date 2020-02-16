@@ -38,36 +38,40 @@ namespace Birdie.Droid
 
         public override Result DoWork()
         {
-            AndroidRefreshes.Worker = DateTime.Now;
-
-            // If the alarm is not yet active or hasn't refreshed in awhile, attempt to recreate it, then wait for it to fire.  --Kris
-            if (!AlarmActive || !AlarmSet)
+            try
             {
-                // Set the alarm.  --Kris
-                PendingIntent pendingIntent = PendingIntent.GetBroadcast(Application.Context, 0, AlarmIntent, PendingIntentFlags.UpdateCurrent);
-                AlarmManager alarmManager = (AlarmManager)Application.Context.GetSystemService(Context.AlarmService);
+                AndroidRefreshes.Worker = DateTime.Now;
 
-                alarmManager.SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, SystemClock.ElapsedRealtime() + 5000, pendingIntent);
-
-                // Wait for the alarm intent to execute.  --Kris
-                DateTime start = DateTime.Now;
-                while (!AlarmActive
-                    && start.AddSeconds(30) > DateTime.Now)
+                // If the alarm is not yet active or hasn't refreshed in awhile, attempt to recreate it, then wait for it to fire.  --Kris
+                if (!AlarmActive || !AlarmSet)
                 {
-                    Thread.Sleep(5000);
+                    // Set the alarm.  --Kris
+                    PendingIntent pendingIntent = PendingIntent.GetBroadcast(Application.Context, 0, AlarmIntent, PendingIntentFlags.UpdateCurrent);
+                    AlarmManager alarmManager = (AlarmManager)Application.Context.GetSystemService(Context.AlarmService);
+
+                    alarmManager.SetExactAndAllowWhileIdle(AlarmType.ElapsedRealtimeWakeup, SystemClock.ElapsedRealtime() + 5000, pendingIntent);
+
+                    // Wait for the alarm intent to execute.  --Kris
+                    DateTime start = DateTime.Now;
+                    while (!AlarmActive
+                        && start.AddSeconds(30) > DateTime.Now)
+                    {
+                        Thread.Sleep(5000);
+                    }
+
+                    // If the alarm still hasn't refreshed, fire the script from here, instead.  --Kris
+                    if (!AlarmActive)
+                    {
+                        Shared.BirdieLib.Start();
+                    }
                 }
-
-                // If the alarm still hasn't refreshed, fire the script from here, instead.  --Kris
-                if (!AlarmActive)
+                // Otherwise, refresh data from the Birdie API for display purposes.  --Kris
+                else
                 {
-                    Shared.BirdieLib.Start();
+                    Shared.BirdieLib.InvokeStatsUpdate();
                 }
             }
-            // Otherwise, refresh data from the Birdie API for display purposes.  --Kris
-            else
-            {
-                Shared.BirdieLib.InvokeStatsUpdate();
-            }
+            catch (Exception) { }
 
             return Result.InvokeSuccess();
         }
