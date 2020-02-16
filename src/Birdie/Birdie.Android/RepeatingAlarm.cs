@@ -17,7 +17,11 @@ namespace Birdie.Droid
             AndroidRefreshes.Alarm = DateTime.Now;
 
             // Launch BirdieLib ControlLoop in script mode.  --Kris
-            Shared.BirdieLib.Start();
+            try
+            {
+                Shared.BirdieLib.Start();
+            }
+            catch (Exception) { }
 
             // Repeat in ~15 minutes.  --Kris
             PendingIntent pendingIntent = PendingIntent.GetBroadcast(context, 0, intent, PendingIntentFlags.UpdateCurrent);
