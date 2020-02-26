@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <Version>2.0.1</Version>
-    <AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <FileVersion>2.0.1.0</FileVersion>
+    <Version>2.0.2</Version>
+    <AssemblyVersion>2.0.2.0</AssemblyVersion>
+    <FileVersion>2.0.2.0</FileVersion>
     <PackageReleaseNotes>https://www.reddit.com/r/StillSandersForPres/comments/etndbh/introducing_birdie_a_free_android_app_that_makes/</PackageReleaseNotes>
     <Authors>Kris Craig</Authors>
     <Company />
