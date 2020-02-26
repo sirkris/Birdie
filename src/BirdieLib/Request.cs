@@ -12,7 +12,7 @@ namespace BirdieLib
 
         public Request()
         {
-            RestClient = new RestClient("http://api.kriscraig.com");
+            RestClient = new RestClient("http://upcoalition.ourproject.org/");
         }
 
         public RestRequest Prepare(string url, Method method, List<Parameter> parameters, List<FileParameter> files, string contentType = "application/x-www-form-urlencoded")
